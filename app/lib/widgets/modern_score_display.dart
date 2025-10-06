@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
+import '../models/ball_event.dart';
 import '../theme/app_theme.dart';
 
 class ModernScoreDisplay extends StatelessWidget {
@@ -172,7 +173,7 @@ class ModernScoreDisplay extends StatelessWidget {
     final currentOver = innings.overs.last;
     final runs = currentOver.balls.fold<int>(
       0,
-      (sum, ball) => sum + ball.totalRuns,
+      (int sum, BallEvent ball) => sum + ball.totalRuns,
     );
 
     return runs.toString();

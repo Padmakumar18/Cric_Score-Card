@@ -85,26 +85,34 @@ class MatchProvider extends ChangeNotifier {
     String? wicketType,
     String? dismissedBatsman,
   }) {
-    if (_currentMatch?.currentInnings == null) return;
+    if (_currentMatch?.currentInnings == null) {
+      debugPrint('MatchProvider: Cannot add ball event - no current innings');
+      return;
+    }
 
-    // Save current state for undo functionality
-    _saveMatchState();
+    try {
+      // Save current state for undo functionality
+      _saveMatchState();
 
-    final ballEvent = BallEvent(
-      runs: runs,
-      isWicket: isWicket,
-      isWide: isWide,
-      isNoBall: isNoBall,
-      isBye: isBye,
-      isLegBye: isLegBye,
-      wicketType: wicketType,
-      dismissedBatsman: dismissedBatsman,
-      timestamp: DateTime.now(),
-    );
+      final ballEvent = BallEvent(
+        runs: runs,
+        isWicket: isWicket,
+        isWide: isWide,
+        isNoBall: isNoBall,
+        isBye: isBye,
+        isLegBye: isLegBye,
+        wicketType: wicketType,
+        dismissedBatsman: dismissedBatsman,
+        timestamp: DateTime.now(),
+      );
 
-    _ballHistory.add(ballEvent);
-    _updateInningsWithBall(ballEvent);
-    notifyListeners();
+      _ballHistory.add(ballEvent);
+      _updateInningsWithBall(ballEvent);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('MatchProvider: Error adding ball event: $e');
+      rethrow;
+    }
   }
 
   /// Save current match state for undo functionality
@@ -279,19 +287,34 @@ class MatchProvider extends ChangeNotifier {
   void addNewBatsman(String name) {
     if (_currentMatch?.currentInnings == null) return;
 
-    final currentInnings = _currentMatch!.currentInnings!;
-    final newBatsman = Batsman(name: name, isOnStrike: false);
-    final updatedBatsmen = [...currentInnings.batsmen, newBatsman];
+    try {
+      final currentInnings = _currentMatch!.currentInnings!;
 
-    final updatedInnings = currentInnings.copyWith(batsmen: updatedBatsmen);
+      // Check if we already have maximum batsmen
+      if (currentInnings.batsmen.length >= 11) {
+        debugPrint('MatchProvider: Cannot add more batsmen - maximum reached');
+        return;
+      }
 
-    if (_currentMatch!.status == AppConstants.statusFirstInnings) {
-      _currentMatch = _currentMatch!.copyWith(firstInnings: updatedInnings);
-    } else if (_currentMatch!.status == AppConstants.statusSecondInnings) {
-      _currentMatch = _currentMatch!.copyWith(secondInnings: updatedInnings);
+      // Ensure the new batsman comes in as non-striker if there's already a striker
+      final hasStriker = currentInnings.batsmen.any(
+        (b) => b.isOnStrike && !b.isOut,
+      );
+      final newBatsman = Batsman(name: name, isOnStrike: !hasStriker);
+      final updatedBatsmen = [...currentInnings.batsmen, newBatsman];
+
+      final updatedInnings = currentInnings.copyWith(batsmen: updatedBatsmen);
+
+      if (_currentMatch!.status == AppConstants.statusFirstInnings) {
+        _currentMatch = _currentMatch!.copyWith(firstInnings: updatedInnings);
+      } else if (_currentMatch!.status == AppConstants.statusSecondInnings) {
+        _currentMatch = _currentMatch!.copyWith(secondInnings: updatedInnings);
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('MatchProvider: Error adding new batsman: $e');
     }
-
-    notifyListeners();
   }
 
   /// Change current bowler
@@ -318,26 +341,34 @@ class MatchProvider extends ChangeNotifier {
   void switchStrike() {
     if (_currentMatch?.currentInnings == null) return;
 
-    final currentInnings = _currentMatch!.currentInnings!;
-    final updatedBatsmen = currentInnings.batsmen.map((batsman) {
-      if (!batsman.isOut &&
-          (batsman.isOnStrike ||
-              (!batsman.isOnStrike &&
-                  currentInnings.currentBatsmen.contains(batsman)))) {
-        return batsman.copyWith(isOnStrike: !batsman.isOnStrike);
+    try {
+      final currentInnings = _currentMatch!.currentInnings!;
+      final currentBatsmen = currentInnings.currentBatsmen;
+
+      if (currentBatsmen.length < 2) {
+        debugPrint('MatchProvider: Cannot switch strike - not enough batsmen');
+        return;
       }
-      return batsman;
-    }).toList();
 
-    final updatedInnings = currentInnings.copyWith(batsmen: updatedBatsmen);
+      final updatedBatsmen = currentInnings.batsmen.map((batsman) {
+        if (!batsman.isOut && currentBatsmen.contains(batsman)) {
+          return batsman.copyWith(isOnStrike: !batsman.isOnStrike);
+        }
+        return batsman;
+      }).toList();
 
-    if (_currentMatch!.status == AppConstants.statusFirstInnings) {
-      _currentMatch = _currentMatch!.copyWith(firstInnings: updatedInnings);
-    } else if (_currentMatch!.status == AppConstants.statusSecondInnings) {
-      _currentMatch = _currentMatch!.copyWith(secondInnings: updatedInnings);
+      final updatedInnings = currentInnings.copyWith(batsmen: updatedBatsmen);
+
+      if (_currentMatch!.status == AppConstants.statusFirstInnings) {
+        _currentMatch = _currentMatch!.copyWith(firstInnings: updatedInnings);
+      } else if (_currentMatch!.status == AppConstants.statusSecondInnings) {
+        _currentMatch = _currentMatch!.copyWith(secondInnings: updatedInnings);
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('MatchProvider: Error switching strike: $e');
     }
-
-    notifyListeners();
   }
 
   /// Undo last ball

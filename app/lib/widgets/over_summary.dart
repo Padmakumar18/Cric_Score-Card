@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
+import '../models/ball_event.dart';
 import '../theme/app_theme.dart';
 
 /// Widget showing the last 6 balls summary
@@ -83,7 +84,11 @@ class OverSummary extends StatelessWidget {
     );
   }
 
-  Widget _buildBallWidget(BuildContext context, String ballText, ballEvent) {
+  Widget _buildBallWidget(
+    BuildContext context,
+    String ballText,
+    BallEvent? ballEvent,
+  ) {
     Color backgroundColor;
     Color textColor = Colors.white;
 
