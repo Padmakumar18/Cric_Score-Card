@@ -15,6 +15,16 @@ class ScoreHeader extends StatelessWidget {
         final currentInnings = match?.currentInnings;
 
         if (match == null || currentInnings == null) {
+          debugPrint('ScoreHeader: match is null: ${match == null}');
+          debugPrint(
+            'ScoreHeader: currentInnings is null: ${currentInnings == null}',
+          );
+          if (match != null) {
+            debugPrint('ScoreHeader: match status: ${match.status}');
+            debugPrint(
+              'ScoreHeader: firstInnings exists: ${match.firstInnings != null}',
+            );
+          }
           return const SizedBox.shrink();
         }
 

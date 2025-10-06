@@ -1,197 +1,213 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
-import '../widgets/responsive_layout.dart';
-import '../widgets/score_header.dart';
-import '../widgets/batting_section.dart';
-import '../widgets/bowling_section.dart';
-import '../widgets/scoring_controls.dart';
-import '../widgets/over_summary.dart';
 import '../theme/app_theme.dart';
+import '../widgets/responsive_layout.dart';
+import '../widgets/modern_score_display.dart';
+import '../widgets/modern_batsmen_card.dart';
+import '../widgets/modern_bowler_card.dart';
+import '../widgets/modern_score_buttons.dart';
+import '../widgets/modern_action_buttons.dart';
 
-/// Main scoreboard screen showing live match data
 class ScoreboardScreen extends StatelessWidget {
   const ScoreboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<MatchProvider>(
-      builder: (context, matchProvider, child) {
-        final match = matchProvider.currentMatch;
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const Icon(Icons.sports_cricket, size: 24),
+            const SizedBox(width: 8),
+            Consumer<MatchProvider>(
+              builder: (context, provider, child) {
+                final match = provider.currentMatch;
+                if (match == null) return const Text('Cricket Scoreboard');
+                return Text('${match.team1} vs ${match.team2}');
+              },
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.primaryBlue,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          Consumer<MatchProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                icon: Icon(
+                  Icons.undo,
+                  color: provider.canUndo ? Colors.white : Colors.white38,
+                ),
+                onPressed: provider.canUndo ? provider.undoLastBall : null,
+                tooltip: 'Undo Last Ball',
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              _showResetDialog(context);
+            },
+            tooltip: 'Reset Match',
+          ),
+        ],
+      ),
+      body: Consumer<MatchProvider>(
+        builder: (context, provider, child) {
+          final match = provider.currentMatch;
 
-        if (match == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Scoreboard')),
-            body: const Center(child: Text('No match in progress')),
-          );
-        }
-
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('${match.team1} vs ${match.team2}'),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () => _showResetDialog(context),
-              ),
-              PopupMenuButton<String>(
-                onSelected: (value) => _handleMenuAction(context, value),
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'undo',
-                    child: Row(
-                      children: [
-                        Icon(Icons.undo),
-                        SizedBox(width: 8),
-                        Text('Undo Last Ball'),
-                      ],
-                    ),
+          if (match == null) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.sports_cricket,
+                    size: 64,
+                    color: AppTheme.textTertiary,
                   ),
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit),
-                        SizedBox(width: 8),
-                        Text('Edit Score'),
-                      ],
+                  SizedBox(height: 16),
+                  Text(
+                    'No match in progress',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          body: ResponsiveLayout(
-            mobile: _buildMobileLayout(context, match),
-            tablet: _buildTabletLayout(context, match),
-            desktop: _buildDesktopLayout(context, match),
-          ),
-        );
-      },
+            );
+          }
+
+          return ResponsiveLayout(
+            mobile: _buildMobileLayout(context),
+            tablet: _buildTabletLayout(context),
+            desktop: _buildDesktopLayout(context),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, match) {
+  Widget _buildMobileLayout(BuildContext context) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const ScoreHeader(),
+          const ModernScoreDisplay(),
           const SizedBox(height: 16),
-          const OverSummary(),
+          const ModernBatsmenCard(),
           const SizedBox(height: 16),
-          const BattingSection(),
+          const ModernBowlerCard(),
           const SizedBox(height: 16),
-          const BowlingSection(),
+          const ModernActionButtons(),
           const SizedBox(height: 16),
-          const ScoringControls(),
-          const SizedBox(height: 16),
+          const ModernScoreButtons(),
         ],
       ),
     );
   }
 
-  Widget _buildTabletLayout(BuildContext context, match) {
+  Widget _buildTabletLayout(BuildContext context) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const ScoreHeader(),
-          const SizedBox(height: 16),
-          const OverSummary(),
-          const SizedBox(height: 16),
+          const ModernScoreDisplay(),
+          const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(child: BattingSection()),
-              const SizedBox(width: 16),
-              const Expanded(child: BowlingSection()),
+              const Expanded(child: ModernBatsmenCard()),
+              const SizedBox(width: 20),
+              const Expanded(child: ModernBowlerCard()),
             ],
           ),
-          const SizedBox(height: 16),
-          const ScoringControls(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
+          const ModernActionButtons(),
+          const SizedBox(height: 20),
+          const ModernScoreButtons(),
         ],
       ),
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, match) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: SingleChildScrollView(
+  Widget _buildDesktopLayout(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
             child: Column(
               children: [
-                const ScoreHeader(),
-                const SizedBox(height: 16),
-                const OverSummary(),
-                const SizedBox(height: 16),
+                const ModernScoreDisplay(),
+                const SizedBox(height: 24),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Expanded(child: BattingSection()),
-                    const SizedBox(width: 16),
-                    const Expanded(child: BowlingSection()),
+                    const Expanded(child: ModernBatsmenCard()),
+                    const SizedBox(width: 24),
+                    const Expanded(child: ModernBowlerCard()),
                   ],
                 ),
               ],
             ),
           ),
-        ),
-        const SizedBox(width: 16),
-        const Expanded(flex: 1, child: ScoringControls()),
-      ],
-    );
-  }
-
-  void _handleMenuAction(BuildContext context, String action) {
-    final matchProvider = context.read<MatchProvider>();
-
-    switch (action) {
-      case 'undo':
-        matchProvider.undoLastBall();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Last ball undone')));
-        break;
-      case 'edit':
-        _showEditScoreDialog(context);
-        break;
-    }
-  }
-
-  void _showResetDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset Match'),
-        content: const Text(
-          'Are you sure you want to reset the match? All data will be lost.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<MatchProvider>().resetMatch();
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(); // Go back to home
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
-            child: const Text('Reset'),
+          const SizedBox(width: 32),
+          Expanded(
+            flex: 1,
+            child: Column(
+              children: [
+                const ModernActionButtons(),
+                const SizedBox(height: 24),
+                const ModernScoreButtons(),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showEditScoreDialog(BuildContext context) {
-    // TODO: Implement edit score dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Edit score feature coming soon!')),
+  void _showResetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardBackground,
+          title: const Text(
+            'Reset Match',
+            style: TextStyle(color: AppTheme.textPrimary),
+          ),
+          content: const Text(
+            'Are you sure you want to reset the current match? This action cannot be undone.',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppTheme.accentBlue),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                context.read<MatchProvider>().resetMatch();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.errorRed,
+              ),
+              child: const Text('Reset'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

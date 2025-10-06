@@ -9,9 +9,11 @@ import '../constants/app_constants.dart';
 class MatchProvider extends ChangeNotifier {
   Match? _currentMatch;
   final List<BallEvent> _ballHistory = [];
+  final List<Match> _matchStateHistory = [];
 
   Match? get currentMatch => _currentMatch;
   List<BallEvent> get ballHistory => _ballHistory;
+  bool get canUndo => _matchStateHistory.isNotEmpty;
 
   /// Create a new match
   void createMatch({
@@ -37,11 +39,23 @@ class MatchProvider extends ChangeNotifier {
     List<String> battingPlayers,
     List<String> bowlingPlayers,
   ) {
-    if (_currentMatch == null) return;
+    if (_currentMatch == null) {
+      debugPrint('MatchProvider: Cannot start innings - no current match');
+      return;
+    }
 
+    debugPrint(
+      'MatchProvider: Starting first innings with ${battingPlayers.length} batsmen and ${bowlingPlayers.length} bowlers',
+    );
     _currentMatch = _currentMatch!.startFirstInnings(
       battingPlayers,
       bowlingPlayers,
+    );
+    debugPrint(
+      'MatchProvider: Match status after starting innings: ${_currentMatch!.status}',
+    );
+    debugPrint(
+      'MatchProvider: Current innings exists: ${_currentMatch!.currentInnings != null}',
     );
     notifyListeners();
   }
@@ -73,6 +87,9 @@ class MatchProvider extends ChangeNotifier {
   }) {
     if (_currentMatch?.currentInnings == null) return;
 
+    // Save current state for undo functionality
+    _saveMatchState();
+
     final ballEvent = BallEvent(
       runs: runs,
       isWicket: isWicket,
@@ -88,6 +105,17 @@ class MatchProvider extends ChangeNotifier {
     _ballHistory.add(ballEvent);
     _updateInningsWithBall(ballEvent);
     notifyListeners();
+  }
+
+  /// Save current match state for undo functionality
+  void _saveMatchState() {
+    if (_currentMatch != null) {
+      _matchStateHistory.add(_currentMatch!.copyWith());
+      // Keep only last 10 states to prevent memory issues
+      if (_matchStateHistory.length > 10) {
+        _matchStateHistory.removeAt(0);
+      }
+    }
   }
 
   /// Update innings with ball event
@@ -314,11 +342,16 @@ class MatchProvider extends ChangeNotifier {
 
   /// Undo last ball
   void undoLastBall() {
-    if (_ballHistory.isEmpty || _currentMatch?.currentInnings == null) return;
+    if (!canUndo) return;
 
-    _ballHistory.removeLast();
-    // For simplicity, we'll reset the match and replay all balls
-    // In a production app, you'd want more sophisticated undo logic
+    // Restore previous match state
+    _currentMatch = _matchStateHistory.removeLast();
+
+    // Remove last ball from history
+    if (_ballHistory.isNotEmpty) {
+      _ballHistory.removeLast();
+    }
+
     notifyListeners();
   }
 
@@ -326,6 +359,7 @@ class MatchProvider extends ChangeNotifier {
   void resetMatch() {
     _currentMatch = null;
     _ballHistory.clear();
+    _matchStateHistory.clear();
     notifyListeners();
   }
 }

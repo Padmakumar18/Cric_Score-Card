@@ -17,7 +17,7 @@ class CricketScoreboardApp extends StatelessWidget {
       create: (context) => MatchProvider(),
       child: MaterialApp(
         title: 'Cricket Scoreboard',
-        theme: AppTheme.lightTheme,
+        theme: AppTheme.modernDarkTheme,
         home: const HomeScreen(),
         debugShowCheckedModeBanner: false,
       ),

@@ -71,7 +71,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-        color: AppTheme.primaryGreen,
+        color: AppTheme.accentBlue,
         fontWeight: FontWeight.bold,
       ),
     );
@@ -264,14 +264,26 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
       _tossWinner = team2;
     }
 
+    final matchProvider = context.read<MatchProvider>();
+
     // Create match
-    context.read<MatchProvider>().createMatch(
+    matchProvider.createMatch(
       team1: team1,
       team2: team2,
       oversPerInnings: _oversPerInnings,
       tossWinner: _tossWinner,
       tossDecision: _tossDecision,
     );
+
+    // Use default players for simplicity
+    final battingPlayers = AppConstants.defaultPlayersTeamA;
+    final bowlingPlayers = AppConstants.defaultPlayersTeamB;
+
+    // Start first innings with default players
+    matchProvider.startFirstInnings(battingPlayers, bowlingPlayers);
+
+    // Set first bowler as current bowler
+    matchProvider.changeBowler(bowlingPlayers.first);
 
     // Navigate to scoreboard
     Navigator.of(context).pushReplacement(
