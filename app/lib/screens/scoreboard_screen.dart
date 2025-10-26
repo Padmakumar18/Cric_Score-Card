@@ -8,9 +8,58 @@ import '../widgets/modern_batsmen_card.dart';
 import '../widgets/modern_bowler_card.dart';
 import '../widgets/modern_score_buttons.dart';
 import '../widgets/modern_action_buttons.dart';
+import '../widgets/current_over_display.dart';
+import '../widgets/player_dialogs.dart';
+import '../constants/app_constants.dart';
 
-class ScoreboardScreen extends StatelessWidget {
+class ScoreboardScreen extends StatefulWidget {
   const ScoreboardScreen({super.key});
+
+  @override
+  State<ScoreboardScreen> createState() => _ScoreboardScreenState();
+}
+
+class _ScoreboardScreenState extends State<ScoreboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForDialogs();
+    });
+  }
+
+  void _checkForDialogs() {
+    final provider = context.read<MatchProvider>();
+    final match = provider.currentMatch;
+
+    if (match == null) return;
+
+    // Check if first innings is complete and need to start second innings
+    if (match.isFirstInningsComplete &&
+        match.status == AppConstants.statusFirstInnings) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          PlayerDialogs.showInningsSwitchDialog(context, provider);
+        }
+      });
+    }
+    // Check if new bowler is needed
+    else if (provider.needsNewBowler) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          PlayerDialogs.showNewBowlerDialog(context, provider);
+        }
+      });
+    }
+    // Check if new batsman is needed
+    else if (provider.needsNewBatsman) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          PlayerDialogs.showNewBatsmanDialog(context, provider);
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +130,11 @@ class ScoreboardScreen extends StatelessWidget {
             );
           }
 
+          // Check for dialogs after build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkForDialogs();
+          });
+
           return ResponsiveLayout(
             mobile: _buildMobileLayout(context),
             tablet: _buildTabletLayout(context),
@@ -97,6 +151,8 @@ class ScoreboardScreen extends StatelessWidget {
       child: Column(
         children: [
           const ModernScoreDisplay(),
+          const SizedBox(height: 16),
+          const CurrentOverDisplay(),
           const SizedBox(height: 16),
           const ModernBatsmenCard(),
           const SizedBox(height: 16),
@@ -116,6 +172,8 @@ class ScoreboardScreen extends StatelessWidget {
       child: Column(
         children: [
           const ModernScoreDisplay(),
+          const SizedBox(height: 20),
+          const CurrentOverDisplay(),
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,6 +203,8 @@ class ScoreboardScreen extends StatelessWidget {
             child: Column(
               children: [
                 const ModernScoreDisplay(),
+                const SizedBox(height: 24),
+                const CurrentOverDisplay(),
                 const SizedBox(height: 24),
                 Row(
                   children: [

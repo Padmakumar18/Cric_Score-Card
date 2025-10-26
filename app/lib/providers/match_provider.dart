@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/match.dart';
 import '../models/batsman.dart';
+import '../models/bowler.dart';
 import '../models/ball_event.dart';
 import '../models/over.dart';
 import '../constants/app_constants.dart';
@@ -281,6 +282,64 @@ class MatchProvider extends ChangeNotifier {
         );
       }
     }
+  }
+
+  /// Add new bowler to current innings
+  void addNewBowler(String name) {
+    if (_currentMatch?.currentInnings == null) return;
+
+    try {
+      final currentInnings = _currentMatch!.currentInnings!;
+
+      // Check if bowler already exists
+      final existingBowler = currentInnings.bowlers
+          .where((b) => b.name == name)
+          .firstOrNull;
+
+      if (existingBowler != null) {
+        // Just set as current bowler
+        changeBowler(name);
+      } else {
+        // Add new bowler
+        final newBowler = Bowler(name: name, isCurrentBowler: true);
+        final updatedBowlers = currentInnings.bowlers.map((bowler) {
+          return bowler.copyWith(isCurrentBowler: false);
+        }).toList();
+        updatedBowlers.add(newBowler);
+
+        final updatedInnings = currentInnings.copyWith(bowlers: updatedBowlers);
+
+        if (_currentMatch!.status == AppConstants.statusFirstInnings) {
+          _currentMatch = _currentMatch!.copyWith(firstInnings: updatedInnings);
+        } else if (_currentMatch!.status == AppConstants.statusSecondInnings) {
+          _currentMatch = _currentMatch!.copyWith(
+            secondInnings: updatedInnings,
+          );
+        }
+
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('MatchProvider: Error adding new bowler: $e');
+    }
+  }
+
+  /// Check if over is complete and needs new bowler
+  bool get needsNewBowler {
+    final currentInnings = _currentMatch?.currentInnings;
+    if (currentInnings == null) return false;
+
+    return currentInnings.ballsInCurrentOver == 0 &&
+        currentInnings.ballsBowled > 0;
+  }
+
+  /// Check if a new batsman is needed
+  bool get needsNewBatsman {
+    final currentInnings = _currentMatch?.currentInnings;
+    if (currentInnings == null) return false;
+
+    final activeBatsmen = currentInnings.batsmen.where((b) => !b.isOut).length;
+    return activeBatsmen < 2 && currentInnings.wickets < 10;
   }
 
   /// Add new batsman to current innings

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
 import '../theme/app_theme.dart';
+import 'player_dialogs.dart';
 
 class ModernActionButtons extends StatelessWidget {
   const ModernActionButtons({super.key});
@@ -281,10 +282,9 @@ class ModernActionButtons extends StatelessWidget {
                       isWicket: true,
                       wicketType: type,
                     );
-                    provider.addNewBatsman(
-                      'New Batsman ${provider.currentMatch!.currentInnings!.batsmen.length + 1}',
-                    );
                     Navigator.of(context).pop();
+                    // Show new batsman dialog
+                    PlayerDialogs.showNewBatsmanDialog(context, provider);
                   },
                 ),
               )
@@ -322,10 +322,9 @@ class ModernActionButtons extends StatelessWidget {
                           isWicket: true,
                           wicketType: 'Run Out',
                         );
-                        provider.addNewBatsman(
-                          'New Batsman ${provider.currentMatch!.currentInnings!.batsmen.length + 1}',
-                        );
                         Navigator.of(context).pop();
+                        // Show new batsman dialog
+                        PlayerDialogs.showNewBatsmanDialog(context, provider);
                       },
                       child: Text(runs.toString()),
                     ),
