@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/match.dart';
 import '../models/batsman.dart';
+import '../models/bowler.dart';
 import '../models/ball_event.dart';
 import '../models/over.dart';
 import '../constants/app_constants.dart';
@@ -281,6 +282,97 @@ class MatchProvider extends ChangeNotifier {
         );
       }
     }
+  }
+
+  /// Add new bowler to current innings
+  void addNewBowler(String name) {
+    if (_currentMatch?.currentInnings == null) return;
+
+    try {
+      final currentInnings = _currentMatch!.currentInnings!;
+
+      // Check if bowler already exists
+      Bowler? existingBowler;
+      try {
+        existingBowler = currentInnings.bowlers.firstWhere(
+          (b) => b.name == name,
+        );
+      } catch (e) {
+        existingBowler = null;
+      }
+
+      if (existingBowler != null) {
+        // Just set as current bowler
+        changeBowler(name);
+      } else {
+        // Add new bowler
+        final newBowler = Bowler(name: name, isCurrentBowler: true);
+        final updatedBowlers = currentInnings.bowlers.map((bowler) {
+          return bowler.copyWith(isCurrentBowler: false);
+        }).toList();
+        updatedBowlers.add(newBowler);
+
+        final updatedInnings = currentInnings.copyWith(bowlers: updatedBowlers);
+
+        if (_currentMatch!.status == AppConstants.statusFirstInnings) {
+          _currentMatch = _currentMatch!.copyWith(firstInnings: updatedInnings);
+        } else if (_currentMatch!.status == AppConstants.statusSecondInnings) {
+          _currentMatch = _currentMatch!.copyWith(
+            secondInnings: updatedInnings,
+          );
+        }
+
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('MatchProvider: Error adding new bowler: $e');
+      rethrow;
+    }
+  }
+
+  /// Check if over is complete and needs new bowler
+  bool get needsNewBowler {
+    final currentInnings = _currentMatch?.currentInnings;
+    if (currentInnings == null) return false;
+
+    // Only show dialog if:
+    // 1. We're at the start of a new over (ballsInCurrentOver == 0)
+    // 2. At least one ball has been bowled (ballsBowled > 0)
+    // 3. There's no current bowler set OR the last over is complete
+    final isNewOver =
+        currentInnings.ballsInCurrentOver == 0 &&
+        currentInnings.ballsBowled > 0;
+
+    if (!isNewOver) return false;
+
+    // Check if we have a current bowler
+    final hasCurrentBowler = currentInnings.currentBowler != null;
+
+    // If no current bowler, we need one
+    if (!hasCurrentBowler) return true;
+
+    // If we have a current bowler but the last over is complete, we might need a new one
+    // Check if the last over was bowled by the current bowler
+    if (currentInnings.overs.isNotEmpty) {
+      final lastOver = currentInnings.overs.last;
+      final currentBowlerName = currentInnings.currentBowler?.name;
+
+      // If last over is complete and was bowled by current bowler, need new bowler
+      if (lastOver.isComplete && lastOver.bowlerName == currentBowlerName) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Check if a new batsman is needed
+  bool get needsNewBatsman {
+    final currentInnings = _currentMatch?.currentInnings;
+    if (currentInnings == null) return false;
+
+    final activeBatsmen = currentInnings.batsmen.where((b) => !b.isOut).length;
+    return activeBatsmen < 2 && currentInnings.wickets < 10;
   }
 
   /// Add new batsman to current innings

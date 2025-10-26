@@ -8,9 +8,76 @@ import '../widgets/modern_batsmen_card.dart';
 import '../widgets/modern_bowler_card.dart';
 import '../widgets/modern_score_buttons.dart';
 import '../widgets/modern_action_buttons.dart';
+import '../widgets/player_dialogs.dart';
+import '../constants/app_constants.dart';
 
-class ScoreboardScreen extends StatelessWidget {
+class ScoreboardScreen extends StatefulWidget {
   const ScoreboardScreen({super.key});
+
+  @override
+  State<ScoreboardScreen> createState() => _ScoreboardScreenState();
+}
+
+class _ScoreboardScreenState extends State<ScoreboardScreen> {
+  bool _isDialogShowing = false;
+  int _lastCheckedBalls = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForDialogs();
+    });
+  }
+
+  void _checkForDialogs() {
+    if (_isDialogShowing) return; // Prevent multiple dialogs
+
+    final provider = context.read<MatchProvider>();
+    final match = provider.currentMatch;
+
+    if (match == null) return;
+
+    final currentBalls = match.currentInnings?.ballsBowled ?? 0;
+
+    // Check if first innings is complete and need to start second innings
+    if (match.isFirstInningsComplete &&
+        match.status == AppConstants.statusFirstInnings) {
+      _isDialogShowing = true;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          PlayerDialogs.showInningsSwitchDialog(context, provider).then((_) {
+            _isDialogShowing = false;
+            _lastCheckedBalls = currentBalls;
+          });
+        }
+      });
+    }
+    // Check if new bowler is needed
+    else if (provider.needsNewBowler && _lastCheckedBalls != currentBalls) {
+      _isDialogShowing = true;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          PlayerDialogs.showNewBowlerDialog(context, provider).then((_) {
+            _isDialogShowing = false;
+            _lastCheckedBalls = currentBalls;
+          });
+        }
+      });
+    }
+    // Check if new batsman is needed
+    else if (provider.needsNewBatsman && _lastCheckedBalls != currentBalls) {
+      _isDialogShowing = true;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
+            _isDialogShowing = false;
+            _lastCheckedBalls = currentBalls;
+          });
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +148,11 @@ class ScoreboardScreen extends StatelessWidget {
             );
           }
 
+          // Check for dialogs after build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkForDialogs();
+          });
+
           return ResponsiveLayout(
             mobile: _buildMobileLayout(context),
             tablet: _buildTabletLayout(context),
@@ -92,43 +164,59 @@ class ScoreboardScreen extends StatelessWidget {
   }
 
   Widget _buildMobileLayout(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
       child: Column(
         children: [
           const ModernScoreDisplay(),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           const ModernBatsmenCard(),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           const ModernBowlerCard(),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           const ModernActionButtons(),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           const ModernScoreButtons(),
+          SizedBox(height: isSmallScreen ? 8 : 16), // Bottom padding
         ],
       ),
     );
   }
 
   Widget _buildTabletLayout(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeTablet = screenWidth >= 900;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.symmetric(
+        horizontal: isLargeTablet ? 32 : 20,
+        vertical: isLargeTablet ? 24 : 16,
+      ),
       child: Column(
         children: [
           const ModernScoreDisplay(),
-          const SizedBox(height: 20),
+          SizedBox(height: isLargeTablet ? 20 : 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Expanded(child: ModernBatsmenCard()),
-              const SizedBox(width: 20),
+              SizedBox(width: isLargeTablet ? 20 : 16),
               const Expanded(child: ModernBowlerCard()),
             ],
           ),
-          const SizedBox(height: 20),
-          const ModernActionButtons(),
-          const SizedBox(height: 20),
-          const ModernScoreButtons(),
+          SizedBox(height: isLargeTablet ? 20 : 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(child: ModernActionButtons()),
+              SizedBox(width: isLargeTablet ? 20 : 16),
+              const Expanded(child: ModernScoreButtons()),
+            ],
+          ),
+          const SizedBox(height: 16), // Bottom padding
         ],
       ),
     );

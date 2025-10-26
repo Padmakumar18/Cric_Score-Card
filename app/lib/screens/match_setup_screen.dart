@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
 import '../constants/app_constants.dart';
 import '../theme/app_theme.dart';
-import 'scoreboard_screen.dart';
+import 'player_setup_screen.dart';
 
 /// Screen for setting up a new cricket match
 class MatchSetupScreen extends StatefulWidget {
@@ -115,6 +115,10 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   }
 
   Widget _buildMatchFormat() {
+    final oversController = TextEditingController(
+      text: _oversPerInnings.toString(),
+    );
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -126,6 +130,8 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
+
+            // Predefined Overs Options
             Wrap(
               spacing: 8,
               children: [5, 10, 15, 20, 25, 50].map((overs) {
@@ -136,11 +142,32 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
                     if (selected) {
                       setState(() {
                         _oversPerInnings = overs;
+                        oversController.text = overs.toString();
                       });
                     }
                   },
                 );
               }).toList(),
+            ),
+
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: oversController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Enter custom number of overs',
+                border: const OutlineInputBorder(),
+                suffixIcon: const Icon(Icons.sports_cricket),
+              ),
+              onChanged: (value) {
+                final enteredValue = int.tryParse(value);
+                if (enteredValue != null && enteredValue > 0) {
+                  setState(() {
+                    _oversPerInnings = enteredValue;
+                  });
+                }
+              },
             ),
           ],
         ),
@@ -275,19 +302,14 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
       tossDecision: _tossDecision,
     );
 
-    // Use default players for simplicity
-    final battingPlayers = AppConstants.defaultPlayersTeamA;
-    final bowlingPlayers = AppConstants.defaultPlayersTeamB;
-
-    // Start first innings with default players
-    matchProvider.startFirstInnings(battingPlayers, bowlingPlayers);
-
-    // Set first bowler as current bowler
-    matchProvider.changeBowler(bowlingPlayers.first);
-
-    // Navigate to scoreboard
+    // Navigate to player setup screen
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const ScoreboardScreen()),
+      MaterialPageRoute(
+        builder: (context) => PlayerSetupScreen(
+          battingTeam: matchProvider.currentMatch!.currentBattingTeam,
+          bowlingTeam: matchProvider.currentMatch!.currentBowlingTeam,
+        ),
+      ),
     );
   }
 }

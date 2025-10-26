@@ -8,6 +8,11 @@ class ModernBatsmenCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 768;
+    final isSmallScreen = screenHeight < 700;
+
     return Consumer<MatchProvider>(
       builder: (context, provider, child) {
         final innings = provider.currentMatch?.currentInnings;
@@ -18,10 +23,10 @@ class ModernBatsmenCard extends StatelessWidget {
 
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isMobile ? (isSmallScreen ? 12 : 16) : 20),
           decoration: BoxDecoration(
             color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
             border: Border.all(
               color: AppTheme.accentBlue.withValues(alpha: 0.3),
               width: 1,
@@ -33,43 +38,43 @@ class ModernBatsmenCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(isMobile ? 6 : 8),
                     decoration: BoxDecoration(
                       color: AppTheme.accentBlue.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.sports_cricket,
                       color: AppTheme.accentBlue,
-                      size: 20,
+                      size: isMobile ? 16 : 20,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
+                  SizedBox(width: isMobile ? 8 : 12),
+                  Text(
                     'Batsman',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: isMobile ? (isSmallScreen ? 15 : 16) : 18,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? (isSmallScreen ? 10 : 12) : 16),
 
               // Batsmen Stats Header
               Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 12,
+                padding: EdgeInsets.symmetric(
+                  vertical: isMobile ? (isSmallScreen ? 6 : 7) : 8,
+                  horizontal: isMobile ? (isSmallScreen ? 8 : 10) : 12,
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceBlue,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Expanded(
+                    const Expanded(
                       flex: 3,
                       child: Text(
                         '',
@@ -87,7 +92,7 @@ class ModernBatsmenCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -99,7 +104,7 @@ class ModernBatsmenCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -111,7 +116,7 @@ class ModernBatsmenCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -123,7 +128,7 @@ class ModernBatsmenCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -135,7 +140,7 @@ class ModernBatsmenCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -144,15 +149,15 @@ class ModernBatsmenCard extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8),
+              SizedBox(height: isMobile ? (isSmallScreen ? 6 : 7) : 8),
 
               // Current Batsmen
               ...currentBatsmen.map(
                 (batsman) => Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 12,
+                  margin: EdgeInsets.symmetric(vertical: isMobile ? 3 : 4),
+                  padding: EdgeInsets.symmetric(
+                    vertical: isMobile ? (isSmallScreen ? 8 : 10) : 12,
+                    horizontal: isMobile ? (isSmallScreen ? 8 : 10) : 12,
                   ),
                   decoration: BoxDecoration(
                     color: batsman.isOnStrike
@@ -175,29 +180,33 @@ class ModernBatsmenCard extends StatelessWidget {
                           children: [
                             if (batsman.isOnStrike)
                               Container(
-                                margin: const EdgeInsets.only(right: 8),
-                                padding: const EdgeInsets.all(4),
+                                margin: EdgeInsets.only(
+                                  right: isMobile ? 6 : 8,
+                                ),
+                                padding: EdgeInsets.all(isMobile ? 3 : 4),
                                 decoration: const BoxDecoration(
                                   color: AppTheme.warningOrange,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.star,
                                   color: Colors.white,
-                                  size: 12,
+                                  size: isMobile ? 10 : 12,
                                 ),
                               ),
                             Expanded(
                               child: Text(
-                                batsman.name.length > 12
-                                    ? '${batsman.name.substring(0, 12)}...'
+                                batsman.name.length > (isMobile ? 10 : 12)
+                                    ? '${batsman.name.substring(0, isMobile ? 10 : 12)}...'
                                     : batsman.name,
                                 style: TextStyle(
                                   color: AppTheme.textPrimary,
                                   fontWeight: batsman.isOnStrike
                                       ? FontWeight.bold
                                       : FontWeight.w500,
-                                  fontSize: 14,
+                                  fontSize: isMobile
+                                      ? (isSmallScreen ? 12 : 13)
+                                      : 14,
                                 ),
                               ),
                             ),
@@ -209,10 +218,10 @@ class ModernBatsmenCard extends StatelessWidget {
                         child: Text(
                           batsman.runs.toString(),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -221,9 +230,9 @@ class ModernBatsmenCard extends StatelessWidget {
                         child: Text(
                           batsman.ballsFaced.toString(),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textSecondary,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -232,9 +241,9 @@ class ModernBatsmenCard extends StatelessWidget {
                         child: Text(
                           batsman.fours.toString(),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textSecondary,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -243,9 +252,9 @@ class ModernBatsmenCard extends StatelessWidget {
                         child: Text(
                           batsman.sixes.toString(),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textSecondary,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -257,7 +266,7 @@ class ModernBatsmenCard extends StatelessWidget {
                           style: TextStyle(
                             color: _getStrikeRateColor(batsman.strikeRate),
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
