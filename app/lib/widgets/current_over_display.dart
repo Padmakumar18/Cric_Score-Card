@@ -19,6 +19,7 @@ class CurrentOverDisplay extends StatelessWidget {
 
         final currentOver = innings.overs.last;
         final balls = currentOver.balls;
+        final validBalls = currentOver.validBalls;
 
         return Container(
           width: double.infinity,
@@ -44,28 +45,42 @@ class CurrentOverDisplay extends StatelessWidget {
                       color: AppTheme.textPrimary,
                     ),
                   ),
-                  Text(
-                    '${currentOver.runsScored} runs',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        '$validBalls/6 balls',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${currentOver.runsScored} runs',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+              // Show all balls in a wrap to handle overflow
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  for (int i = 0; i < 6; i++)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _buildBallChip(
-                        context,
-                        i < balls.length ? balls[i] : null,
-                      ),
-                    ),
+                  // Show all balls that have been bowled
+                  for (int i = 0; i < balls.length; i++)
+                    _buildBallChip(context, balls[i]),
+                  // Show remaining valid balls needed (if less than 6 valid balls)
+                  if (validBalls < 6)
+                    for (int i = 0; i < (6 - validBalls); i++)
+                      _buildBallChip(context, null),
                 ],
               ),
             ],

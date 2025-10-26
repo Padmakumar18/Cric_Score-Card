@@ -20,6 +20,9 @@ class ScoreboardScreen extends StatefulWidget {
 }
 
 class _ScoreboardScreenState extends State<ScoreboardScreen> {
+  bool _isDialogShowing = false;
+  int _lastCheckedBalls = -1;
+
   @override
   void initState() {
     super.initState();
@@ -29,33 +32,49 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   }
 
   void _checkForDialogs() {
+    if (_isDialogShowing) return; // Prevent multiple dialogs
+
     final provider = context.read<MatchProvider>();
     final match = provider.currentMatch;
 
     if (match == null) return;
 
+    final currentBalls = match.currentInnings?.ballsBowled ?? 0;
+
     // Check if first innings is complete and need to start second innings
     if (match.isFirstInningsComplete &&
         match.status == AppConstants.statusFirstInnings) {
+      _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
-          PlayerDialogs.showInningsSwitchDialog(context, provider);
+          PlayerDialogs.showInningsSwitchDialog(context, provider).then((_) {
+            _isDialogShowing = false;
+            _lastCheckedBalls = currentBalls;
+          });
         }
       });
     }
     // Check if new bowler is needed
-    else if (provider.needsNewBowler) {
+    else if (provider.needsNewBowler && _lastCheckedBalls != currentBalls) {
+      _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
-          PlayerDialogs.showNewBowlerDialog(context, provider);
+          PlayerDialogs.showNewBowlerDialog(context, provider).then((_) {
+            _isDialogShowing = false;
+            _lastCheckedBalls = currentBalls;
+          });
         }
       });
     }
     // Check if new batsman is needed
-    else if (provider.needsNewBatsman) {
+    else if (provider.needsNewBatsman && _lastCheckedBalls != currentBalls) {
+      _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
-          PlayerDialogs.showNewBatsmanDialog(context, provider);
+          PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
+            _isDialogShowing = false;
+            _lastCheckedBalls = currentBalls;
+          });
         }
       });
     }

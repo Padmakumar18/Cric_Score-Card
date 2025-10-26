@@ -292,9 +292,14 @@ class MatchProvider extends ChangeNotifier {
       final currentInnings = _currentMatch!.currentInnings!;
 
       // Check if bowler already exists
-      final existingBowler = currentInnings.bowlers
-          .where((b) => b.name == name)
-          .firstOrNull;
+      Bowler? existingBowler;
+      try {
+        existingBowler = currentInnings.bowlers.firstWhere(
+          (b) => b.name == name,
+        );
+      } catch (e) {
+        existingBowler = null;
+      }
 
       if (existingBowler != null) {
         // Just set as current bowler
@@ -321,6 +326,7 @@ class MatchProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('MatchProvider: Error adding new bowler: $e');
+      rethrow;
     }
   }
 
@@ -329,8 +335,35 @@ class MatchProvider extends ChangeNotifier {
     final currentInnings = _currentMatch?.currentInnings;
     if (currentInnings == null) return false;
 
-    return currentInnings.ballsInCurrentOver == 0 &&
+    // Only show dialog if:
+    // 1. We're at the start of a new over (ballsInCurrentOver == 0)
+    // 2. At least one ball has been bowled (ballsBowled > 0)
+    // 3. There's no current bowler set OR the last over is complete
+    final isNewOver =
+        currentInnings.ballsInCurrentOver == 0 &&
         currentInnings.ballsBowled > 0;
+
+    if (!isNewOver) return false;
+
+    // Check if we have a current bowler
+    final hasCurrentBowler = currentInnings.currentBowler != null;
+
+    // If no current bowler, we need one
+    if (!hasCurrentBowler) return true;
+
+    // If we have a current bowler but the last over is complete, we might need a new one
+    // Check if the last over was bowled by the current bowler
+    if (currentInnings.overs.isNotEmpty) {
+      final lastOver = currentInnings.overs.last;
+      final currentBowlerName = currentInnings.currentBowler?.name;
+
+      // If last over is complete and was bowled by current bowler, need new bowler
+      if (lastOver.isComplete && lastOver.bowlerName == currentBowlerName) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /// Check if a new batsman is needed

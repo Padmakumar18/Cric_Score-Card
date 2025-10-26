@@ -92,7 +92,7 @@ class ModernActionButtons extends StatelessWidget {
                       'Wide',
                       Icons.open_in_full,
                       AppTheme.wideColor,
-                      () => provider.addBallEvent(runs: 1, isWide: true),
+                      () => _showWideDialog(context, provider),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -101,7 +101,7 @@ class ModernActionButtons extends StatelessWidget {
                       'No ball',
                       Icons.block,
                       AppTheme.noBallColor,
-                      () => provider.addBallEvent(runs: 1, isNoBall: true),
+                      () => _showNoBallDialog(context, provider),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -210,6 +210,114 @@ class ModernActionButtons extends StatelessWidget {
     );
   }
 
+  void _showWideDialog(BuildContext context, MatchProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardBackground,
+        title: const Text(
+          'Wide',
+          style: TextStyle(color: AppTheme.textPrimary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'How many runs off the wide?',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [0, 1, 2, 3, 4]
+                  .map(
+                    (runs) => SizedBox(
+                      width: 60,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          provider.addBallEvent(runs: runs, isWide: true);
+                          if (runs % 2 == 1) provider.switchStrike();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.wideColor,
+                        ),
+                        child: Text(runs.toString()),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () =>
+                  _showMoreRunsInput(context, provider, 'Wide', isWide: true),
+              child: const Text('More runs...'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showNoBallDialog(BuildContext context, MatchProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardBackground,
+        title: const Text(
+          'No Ball',
+          style: TextStyle(color: AppTheme.textPrimary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'How many runs off the no ball?',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [0, 1, 2, 3, 4]
+                  .map(
+                    (runs) => SizedBox(
+                      width: 60,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          provider.addBallEvent(runs: runs, isNoBall: true);
+                          if (runs % 2 == 1) provider.switchStrike();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.noBallColor,
+                        ),
+                        child: Text(runs.toString()),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => _showMoreRunsInput(
+                context,
+                provider,
+                'No Ball',
+                isNoBall: true,
+              ),
+              child: const Text('More runs...'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showByesDialog(
     BuildContext context,
     MatchProvider provider,
@@ -226,32 +334,123 @@ class ModernActionButtons extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'How many runs?',
-              style: TextStyle(color: AppTheme.textSecondary),
+            Text(
+              'How many ${isLegBye ? 'leg byes' : 'byes'}?',
+              style: const TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [1, 2, 3, 4]
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [0, 1, 2, 3, 4]
                   .map(
-                    (runs) => ElevatedButton(
-                      onPressed: () {
-                        provider.addBallEvent(
-                          runs: runs,
-                          isBye: !isLegBye,
-                          isLegBye: isLegBye,
-                        );
-                        if (runs % 2 == 1) provider.switchStrike();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(runs.toString()),
+                    (runs) => SizedBox(
+                      width: 60,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          provider.addBallEvent(
+                            runs: runs,
+                            isBye: !isLegBye,
+                            isLegBye: isLegBye,
+                          );
+                          if (runs % 2 == 1) provider.switchStrike();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.byeColor,
+                        ),
+                        child: Text(runs.toString()),
+                      ),
                     ),
                   )
                   .toList(),
             ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => _showMoreRunsInput(
+                context,
+                provider,
+                isLegBye ? 'Leg Byes' : 'Byes',
+                isBye: !isLegBye,
+                isLegBye: isLegBye,
+              ),
+              child: const Text('More runs...'),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showMoreRunsInput(
+    BuildContext context,
+    MatchProvider provider,
+    String title, {
+    bool isWide = false,
+    bool isNoBall = false,
+    bool isBye = false,
+    bool isLegBye = false,
+  }) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardBackground,
+        title: Text(
+          '$title - Enter Runs',
+          style: const TextStyle(color: AppTheme.textPrimary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Enter number of runs:',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              decoration: InputDecoration(
+                hintText: 'e.g., 5, 6, 7...',
+                hintStyle: const TextStyle(color: AppTheme.textTertiary),
+                filled: true,
+                fillColor: AppTheme.surfaceDark,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final runs = int.tryParse(controller.text.trim());
+              if (runs != null && runs >= 0) {
+                provider.addBallEvent(
+                  runs: runs,
+                  isWide: isWide,
+                  isNoBall: isNoBall,
+                  isBye: isBye,
+                  isLegBye: isLegBye,
+                );
+                if (runs % 2 == 1) provider.switchStrike();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the previous dialog too
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
     );
   }

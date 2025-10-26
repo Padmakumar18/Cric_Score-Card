@@ -89,55 +89,64 @@ class PlayerDialogs {
         ),
         content: Form(
           key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Over complete. Select or enter new bowler:',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 16),
-              if (previousBowlers.isNotEmpty) ...[
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const Text(
-                  'Previous Bowlers:',
-                  style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.bold,
+                  'Over complete. Enter bowler name:',
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Bowler Name',
+                    prefixIcon: Icon(Icons.sports),
+                    border: OutlineInputBorder(),
+                    hintText: 'Type name or select below',
                   ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter or select bowler name';
+                    }
+                    return null;
+                  },
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: previousBowlers.map((name) {
-                    return ActionChip(
-                      label: Text(name),
-                      onPressed: () {
-                        provider.addNewBowler(name);
-                        Navigator.of(context).pop();
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 16),
+                if (previousBowlers.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Or select from previous bowlers:',
+                    style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: previousBowlers.map((name) {
+                      return ActionChip(
+                        label: Text(name),
+                        backgroundColor: AppTheme.accentBlue.withValues(
+                          alpha: 0.1,
+                        ),
+                        side: BorderSide(
+                          color: AppTheme.accentBlue.withValues(alpha: 0.3),
+                        ),
+                        onPressed: () {
+                          controller.text = name;
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
               ],
-              TextFormField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  labelText: 'New Bowler Name',
-                  prefixIcon: Icon(Icons.sports),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter bowler name';
-                  }
-                  return null;
-                },
-              ),
-            ],
+            ),
           ),
         ),
         actions: [
@@ -148,6 +157,11 @@ class PlayerDialogs {
                 Navigator.of(context).pop();
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
             child: const Text('Set Bowler'),
           ),
         ],
