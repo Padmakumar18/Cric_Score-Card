@@ -9,6 +9,11 @@ class CurrentOverDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 768;
+    final isSmallScreen = screenHeight < 700;
+
     return Consumer<MatchProvider>(
       builder: (context, provider, child) {
         final innings = provider.currentMatch?.currentInnings;
@@ -23,10 +28,10 @@ class CurrentOverDisplay extends StatelessWidget {
 
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(isMobile ? (isSmallScreen ? 12 : 14) : 16),
           decoration: BoxDecoration(
             color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isMobile ? 10 : 12),
             border: Border.all(
               color: AppTheme.textTertiary.withValues(alpha: 0.3),
             ),
@@ -39,8 +44,8 @@ class CurrentOverDisplay extends StatelessWidget {
                 children: [
                   Text(
                     'Current Over ${currentOver.overNumber}',
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: isMobile ? (isSmallScreen ? 14 : 15) : 16,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
                     ),
@@ -49,17 +54,17 @@ class CurrentOverDisplay extends StatelessWidget {
                     children: [
                       Text(
                         '$validBalls/6 balls',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: isMobile ? (isSmallScreen ? 11 : 12) : 12,
                           color: AppTheme.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: isMobile ? 8 : 12),
                       Text(
                         '${currentOver.runsScored} runs',
-                        style: const TextStyle(
-                          fontSize: 14,
+                        style: TextStyle(
+                          fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           color: AppTheme.textSecondary,
                           fontWeight: FontWeight.w600,
                         ),
@@ -68,19 +73,19 @@ class CurrentOverDisplay extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? (isSmallScreen ? 8 : 10) : 12),
               // Show all balls in a wrap to handle overflow
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: isMobile ? (isSmallScreen ? 6 : 7) : 8,
+                runSpacing: isMobile ? (isSmallScreen ? 6 : 7) : 8,
                 children: [
                   // Show all balls that have been bowled
                   for (int i = 0; i < balls.length; i++)
-                    _buildBallChip(context, balls[i]),
+                    _buildBallChip(context, balls[i], isMobile, isSmallScreen),
                   // Show remaining valid balls needed (if less than 6 valid balls)
                   if (validBalls < 6)
                     for (int i = 0; i < (6 - validBalls); i++)
-                      _buildBallChip(context, null),
+                      _buildBallChip(context, null, isMobile, isSmallScreen),
                 ],
               ),
             ],
@@ -90,11 +95,19 @@ class CurrentOverDisplay extends StatelessWidget {
     );
   }
 
-  Widget _buildBallChip(BuildContext context, BallEvent? ball) {
+  Widget _buildBallChip(
+    BuildContext context,
+    BallEvent? ball,
+    bool isMobile,
+    bool isSmallScreen,
+  ) {
+    final chipSize = isMobile ? (isSmallScreen ? 32.0 : 34.0) : 36.0;
+    final fontSize = isMobile ? (isSmallScreen ? 11.0 : 12.0) : 12.0;
+
     if (ball == null) {
       return Container(
-        width: 36,
-        height: 36,
+        width: chipSize,
+        height: chipSize,
         decoration: BoxDecoration(
           color: AppTheme.pitchTan.withValues(alpha: 0.2),
           shape: BoxShape.circle,
@@ -102,12 +115,12 @@ class CurrentOverDisplay extends StatelessWidget {
             color: AppTheme.textTertiary.withValues(alpha: 0.3),
           ),
         ),
-        child: const Center(
+        child: Center(
           child: Text(
             '-',
             style: TextStyle(
               color: AppTheme.textTertiary,
-              fontSize: 14,
+              fontSize: fontSize,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -140,15 +153,15 @@ class CurrentOverDisplay extends StatelessWidget {
     }
 
     return Container(
-      width: 36,
-      height: 36,
+      width: chipSize,
+      height: chipSize,
       decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
       child: Center(
         child: Text(
           displayText,
           style: TextStyle(
             color: textColor,
-            fontSize: 12,
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),

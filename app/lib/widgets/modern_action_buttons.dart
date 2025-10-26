@@ -9,6 +9,11 @@ class ModernActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 768;
+    final isSmallScreen = screenHeight < 700;
+
     return Consumer<MatchProvider>(
       builder: (context, provider, child) {
         final innings = provider.currentMatch?.currentInnings;
@@ -17,10 +22,10 @@ class ModernActionButtons extends StatelessWidget {
 
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isMobile ? (isSmallScreen ? 12 : 16) : 20),
           decoration: BoxDecoration(
             color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
             border: Border.all(
               color: AppTheme.textTertiary.withValues(alpha: 0.3),
               width: 1,
@@ -29,15 +34,15 @@ class ModernActionButtons extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Actions',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: isMobile ? (isSmallScreen ? 15 : 16) : 18,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? (isSmallScreen ? 10 : 12) : 16),
 
               // First Row - Retire, Swap, End Over, Undo
               Row(
@@ -48,27 +53,33 @@ class ModernActionButtons extends StatelessWidget {
                       Icons.exit_to_app,
                       AppTheme.textTertiary,
                       () => _showRetireDialog(context, provider),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildActionButton(
-                      'Swap striker',
+                      'Swap',
                       Icons.swap_horiz,
                       AppTheme.accentBlue,
                       () => provider.switchStrike(),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildActionButton(
                       'End over',
                       Icons.skip_next,
                       AppTheme.warningOrange,
                       () => _showEndOverDialog(context, provider),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildActionButton(
                       'Undo',
@@ -77,12 +88,14 @@ class ModernActionButtons extends StatelessWidget {
                           ? AppTheme.undoColor
                           : AppTheme.textTertiary,
                       provider.canUndo ? () => provider.undoLastBall() : null,
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? (isSmallScreen ? 8 : 10) : 12),
 
               // Second Row - Wide, No ball, Byes, Leg byes
               Row(
@@ -93,39 +106,47 @@ class ModernActionButtons extends StatelessWidget {
                       Icons.open_in_full,
                       AppTheme.wideColor,
                       () => _showWideDialog(context, provider),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildActionButton(
                       'No ball',
                       Icons.block,
                       AppTheme.noBallColor,
                       () => _showNoBallDialog(context, provider),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildActionButton(
                       'Byes',
                       Icons.directions_run,
                       AppTheme.byeColor,
                       () => _showByesDialog(context, provider, false),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildActionButton(
                       'Leg byes',
                       Icons.sports_cricket,
                       AppTheme.byeColor,
                       () => _showByesDialog(context, provider, true),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? (isSmallScreen ? 8 : 10) : 12),
 
               // Third Row - Wicket, Run out
               Row(
@@ -136,20 +157,24 @@ class ModernActionButtons extends StatelessWidget {
                       Icons.close,
                       AppTheme.wicketColor,
                       () => _showWicketDialog(context, provider),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildActionButton(
                       'Run out',
                       Icons.directions_run_outlined,
                       AppTheme.wicketColor,
                       () => _showRunOutDialog(context, provider),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   const Expanded(child: SizedBox()), // Empty space
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   const Expanded(child: SizedBox()), // Empty space
                 ],
               ),
@@ -165,9 +190,11 @@ class ModernActionButtons extends StatelessWidget {
     IconData icon,
     Color color,
     VoidCallback? onPressed,
+    bool isMobile,
+    bool isSmallScreen,
   ) {
     return SizedBox(
-      height: 48,
+      height: isMobile ? (isSmallScreen ? 42 : 45) : 48,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -178,17 +205,22 @@ class ModernActionButtons extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             side: BorderSide(color: color.withValues(alpha: 0.3)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: EdgeInsets.symmetric(horizontal: isMobile ? 4 : 8),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16),
-            const SizedBox(height: 2),
+            Icon(icon, size: isMobile ? (isSmallScreen ? 14 : 15) : 16),
+            SizedBox(height: isMobile ? 1 : 2),
             Text(
               label,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: isMobile ? (isSmallScreen ? 9 : 9.5) : 10,
+                fontWeight: FontWeight.w600,
+              ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

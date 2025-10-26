@@ -8,6 +8,11 @@ class ModernBowlerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 768;
+    final isSmallScreen = screenHeight < 700;
+
     return Consumer<MatchProvider>(
       builder: (context, provider, child) {
         final innings = provider.currentMatch?.currentInnings;
@@ -18,10 +23,10 @@ class ModernBowlerCard extends StatelessWidget {
 
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isMobile ? (isSmallScreen ? 12 : 16) : 20),
           decoration: BoxDecoration(
             color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
             border: Border.all(
               color: AppTheme.successGreen.withValues(alpha: 0.3),
               width: 1,
@@ -33,43 +38,43 @@ class ModernBowlerCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(isMobile ? 6 : 8),
                     decoration: BoxDecoration(
                       color: AppTheme.successGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.sports_baseball,
                       color: AppTheme.successGreen,
-                      size: 20,
+                      size: isMobile ? 16 : 20,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
+                  SizedBox(width: isMobile ? 8 : 12),
+                  Text(
                     'Bowler',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: isMobile ? (isSmallScreen ? 15 : 16) : 18,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? (isSmallScreen ? 10 : 12) : 16),
 
               // Bowler Stats Header
               Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 12,
+                padding: EdgeInsets.symmetric(
+                  vertical: isMobile ? (isSmallScreen ? 6 : 7) : 8,
+                  horizontal: isMobile ? (isSmallScreen ? 8 : 10) : 12,
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceBlue,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Expanded(
+                    const Expanded(
                       flex: 3,
                       child: Text(
                         '',
@@ -87,7 +92,7 @@ class ModernBowlerCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -99,7 +104,7 @@ class ModernBowlerCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -111,7 +116,7 @@ class ModernBowlerCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -123,7 +128,7 @@ class ModernBowlerCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -135,7 +140,7 @@ class ModernBowlerCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
-                          fontSize: 12,
+                          fontSize: isMobile ? (isSmallScreen ? 10 : 11) : 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -144,15 +149,15 @@ class ModernBowlerCard extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8),
+              SizedBox(height: isMobile ? (isSmallScreen ? 6 : 7) : 8),
 
               // Current Bowler
               if (currentBowler != null)
                 Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 12,
+                  margin: EdgeInsets.symmetric(vertical: isMobile ? 3 : 4),
+                  padding: EdgeInsets.symmetric(
+                    vertical: isMobile ? (isSmallScreen ? 8 : 10) : 12,
+                    horizontal: isMobile ? (isSmallScreen ? 8 : 10) : 12,
                   ),
                   decoration: BoxDecoration(
                     color: AppTheme.successGreen.withValues(alpha: 0.1),
@@ -168,27 +173,29 @@ class ModernBowlerCard extends StatelessWidget {
                         child: Row(
                           children: [
                             Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.all(4),
+                              margin: EdgeInsets.only(right: isMobile ? 6 : 8),
+                              padding: EdgeInsets.all(isMobile ? 3 : 4),
                               decoration: const BoxDecoration(
                                 color: AppTheme.successGreen,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.sports_baseball,
                                 color: Colors.white,
-                                size: 12,
+                                size: isMobile ? 10 : 12,
                               ),
                             ),
                             Expanded(
                               child: Text(
-                                currentBowler.name.length > 12
-                                    ? '${currentBowler.name.substring(0, 12)}...'
+                                currentBowler.name.length > (isMobile ? 10 : 12)
+                                    ? '${currentBowler.name.substring(0, isMobile ? 10 : 12)}...'
                                     : currentBowler.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppTheme.textPrimary,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: isMobile
+                                      ? (isSmallScreen ? 12 : 13)
+                                      : 14,
                                 ),
                               ),
                             ),
@@ -200,10 +207,10 @@ class ModernBowlerCard extends StatelessWidget {
                         child: Text(
                           currentBowler.oversString,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -212,9 +219,9 @@ class ModernBowlerCard extends StatelessWidget {
                         child: Text(
                           currentBowler.maidens.toString(),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textSecondary,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -223,9 +230,9 @@ class ModernBowlerCard extends StatelessWidget {
                         child: Text(
                           currentBowler.runsConceded.toString(),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textSecondary,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -234,10 +241,10 @@ class ModernBowlerCard extends StatelessWidget {
                         child: Text(
                           currentBowler.wickets.toString(),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppTheme.textPrimary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -251,7 +258,7 @@ class ModernBowlerCard extends StatelessWidget {
                               currentBowler.economyRate,
                             ),
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                           ),
                         ),
                       ),
@@ -260,17 +267,19 @@ class ModernBowlerCard extends StatelessWidget {
                 )
               else
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(
+                    isMobile ? (isSmallScreen ? 12 : 14) : 16,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceDark,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'No bowler selected',
                       style: TextStyle(
                         color: AppTheme.textSecondary,
-                        fontSize: 14,
+                        fontSize: isMobile ? (isSmallScreen ? 12 : 13) : 14,
                       ),
                     ),
                   ),

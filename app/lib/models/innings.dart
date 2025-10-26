@@ -62,6 +62,12 @@ class Innings {
     return (remainingRuns / remainingBalls) * 6;
   }
 
+  /// Get remaining balls in innings (needs total overs from match)
+  int getRemainingBalls(int totalOvers) {
+    final totalBalls = totalOvers * 6;
+    return totalBalls - ballsBowled;
+  }
+
   /// Get projected total
   int get projectedTotal {
     if (ballsBowled == 0) return 0;

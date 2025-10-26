@@ -9,6 +9,11 @@ class ModernScoreButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 768;
+    final isSmallScreen = screenHeight < 700;
+
     return Consumer<MatchProvider>(
       builder: (context, provider, child) {
         final innings = provider.currentMatch?.currentInnings;
@@ -17,10 +22,10 @@ class ModernScoreButtons extends StatelessWidget {
 
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isMobile ? (isSmallScreen ? 12 : 16) : 20),
           decoration: BoxDecoration(
             color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
             border: Border.all(
               color: AppTheme.lightBlue.withValues(alpha: 0.3),
               width: 1,
@@ -29,15 +34,15 @@ class ModernScoreButtons extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Score Runs',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: isMobile ? (isSmallScreen ? 15 : 16) : 18,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? (isSmallScreen ? 10 : 12) : 16),
 
               // First Row - 0, 1, 2, 3
               Row(
@@ -48,39 +53,47 @@ class ModernScoreButtons extends StatelessWidget {
                       '0',
                       AppTheme.dotBallColor,
                       () => _handleScore(provider, 0),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildScoreButton(
                       context,
                       '1',
                       AppTheme.lightBlue,
                       () => _handleScore(provider, 1),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildScoreButton(
                       context,
                       '2',
                       AppTheme.lightBlue,
                       () => _handleScore(provider, 2),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildScoreButton(
                       context,
                       '3',
                       AppTheme.lightBlue,
                       () => _handleScore(provider, 3),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? (isSmallScreen ? 8 : 10) : 12),
 
               // Second Row - 4, 5, 6, More
               Row(
@@ -91,33 +104,41 @@ class ModernScoreButtons extends StatelessWidget {
                       '4',
                       AppTheme.boundaryColor,
                       () => _handleScore(provider, 4),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildScoreButton(
                       context,
                       '5',
                       AppTheme.lightBlue,
                       () => _handleScore(provider, 5),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildScoreButton(
                       context,
                       '6',
                       AppTheme.sixColor,
                       () => _handleScore(provider, 6),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isMobile ? (isSmallScreen ? 6 : 7) : 8),
                   Expanded(
                     child: _buildScoreButton(
                       context,
                       'More',
                       AppTheme.accentBlue,
                       () => _showMoreRunsDialog(context, provider),
+                      isMobile,
+                      isSmallScreen,
                     ),
                   ),
                 ],
@@ -134,9 +155,11 @@ class ModernScoreButtons extends StatelessWidget {
     String label,
     Color color,
     VoidCallback onPressed,
+    bool isMobile,
+    bool isSmallScreen,
   ) {
     return SizedBox(
-      height: 60,
+      height: isMobile ? (isSmallScreen ? 50 : 55) : 60,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -145,12 +168,16 @@ class ModernScoreButtons extends StatelessWidget {
           elevation: 2,
           shadowColor: color.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isMobile ? 10 : 12),
           ),
+          padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12),
         ),
         child: Text(
           label,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: isMobile ? (isSmallScreen ? 16 : 17) : 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

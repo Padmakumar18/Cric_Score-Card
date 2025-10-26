@@ -8,7 +8,6 @@ import '../widgets/modern_batsmen_card.dart';
 import '../widgets/modern_bowler_card.dart';
 import '../widgets/modern_score_buttons.dart';
 import '../widgets/modern_action_buttons.dart';
-import '../widgets/current_over_display.dart';
 import '../widgets/player_dialogs.dart';
 import '../constants/app_constants.dart';
 
@@ -165,47 +164,59 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   }
 
   Widget _buildMobileLayout(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
       child: Column(
         children: [
           const ModernScoreDisplay(),
-          const SizedBox(height: 16),
-          const CurrentOverDisplay(),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           const ModernBatsmenCard(),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           const ModernBowlerCard(),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           const ModernActionButtons(),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           const ModernScoreButtons(),
+          SizedBox(height: isSmallScreen ? 8 : 16), // Bottom padding
         ],
       ),
     );
   }
 
   Widget _buildTabletLayout(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeTablet = screenWidth >= 900;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.symmetric(
+        horizontal: isLargeTablet ? 32 : 20,
+        vertical: isLargeTablet ? 24 : 16,
+      ),
       child: Column(
         children: [
           const ModernScoreDisplay(),
-          const SizedBox(height: 20),
-          const CurrentOverDisplay(),
-          const SizedBox(height: 20),
+          SizedBox(height: isLargeTablet ? 20 : 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Expanded(child: ModernBatsmenCard()),
-              const SizedBox(width: 20),
+              SizedBox(width: isLargeTablet ? 20 : 16),
               const Expanded(child: ModernBowlerCard()),
             ],
           ),
-          const SizedBox(height: 20),
-          const ModernActionButtons(),
-          const SizedBox(height: 20),
-          const ModernScoreButtons(),
+          SizedBox(height: isLargeTablet ? 20 : 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(child: ModernActionButtons()),
+              SizedBox(width: isLargeTablet ? 20 : 16),
+              const Expanded(child: ModernScoreButtons()),
+            ],
+          ),
+          const SizedBox(height: 16), // Bottom padding
         ],
       ),
     );
@@ -222,8 +233,6 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
             child: Column(
               children: [
                 const ModernScoreDisplay(),
-                const SizedBox(height: 24),
-                const CurrentOverDisplay(),
                 const SizedBox(height: 24),
                 Row(
                   children: [
