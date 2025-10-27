@@ -11,10 +11,18 @@ class MatchProvider extends ChangeNotifier {
   Match? _currentMatch;
   final List<BallEvent> _ballHistory = [];
   final List<Match> _matchStateHistory = [];
+  String? _lastWicketInfo;
 
   Match? get currentMatch => _currentMatch;
   List<BallEvent> get ballHistory => _ballHistory;
   bool get canUndo => _matchStateHistory.isNotEmpty;
+  String? get lastWicketInfo => _lastWicketInfo;
+
+  /// Clear last wicket info
+  void clearLastWicketInfo() {
+    _lastWicketInfo = null;
+    notifyListeners();
+  }
 
   /// Create a new match
   void createMatch({
@@ -111,6 +119,14 @@ class MatchProvider extends ChangeNotifier {
 
       _ballHistory.add(ballEvent);
       _updateInningsWithBall(ballEvent);
+
+      // Set last wicket info if it's a wicket
+      if (isWicket && wicketType != null) {
+        final batsmanName =
+            _currentMatch?.currentInnings?.strikerBatsman?.name ?? 'Batsman';
+        _lastWicketInfo = '$batsmanName - $wicketType';
+      }
+
       notifyListeners();
     } catch (e) {
       debugPrint('MatchProvider: Error adding ball event: $e');
@@ -140,12 +156,17 @@ class MatchProvider extends ChangeNotifier {
     // Update batsman stats
     final updatedBatsmen = currentInnings.batsmen.map((batsman) {
       if (batsman.name == strikerBatsman.name) {
-        return batsman.addRuns(
+        var updatedBatsman = batsman.addRuns(
           ball.runs,
           ball.runs == 4,
           ball.runs == 6,
           ball.countsTowardsOver || ball.isNoBall,
         );
+        // Mark batsman as out if wicket
+        if (ball.isWicket) {
+          updatedBatsman = updatedBatsman.markOut(ball.wicketType ?? 'out');
+        }
+        return updatedBatsman;
       }
       return batsman;
     }).toList();

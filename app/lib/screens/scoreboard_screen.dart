@@ -21,7 +21,9 @@ class ScoreboardScreen extends StatefulWidget {
 class _ScoreboardScreenState extends State<ScoreboardScreen> {
   bool _isDialogShowing = false;
   int _lastCheckedBalls = -1;
+  int _lastCheckedWickets = -1;
   bool _hasShownResultDialog = false;
+  String? _lastShownWicket;
 
   @override
   void initState() {
@@ -36,6 +38,17 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     final match = provider.currentMatch;
 
     if (match == null) return;
+
+    // Check for wicket notification
+    if (provider.lastWicketInfo != null &&
+        provider.lastWicketInfo != _lastShownWicket) {
+      _lastShownWicket = provider.lastWicketInfo;
+      _showWicketNotification(provider.lastWicketInfo!);
+      // Clear the wicket info after showing
+      Future.delayed(const Duration(milliseconds: 100), () {
+        provider.clearLastWicketInfo();
+      });
+    }
 
     // Debug: Print match status
     debugPrint('Match status: ${match.status}');
@@ -61,6 +74,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     }
 
     final currentBalls = match.currentInnings?.ballsBowled ?? 0;
+    final currentWickets = match.currentInnings?.wickets ?? 0;
 
     // Check if first innings is complete and need to start second innings
     if (match.isFirstInningsComplete &&
@@ -71,6 +85,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
           PlayerDialogs.showInningsSwitchDialog(context, provider).then((_) {
             _isDialogShowing = false;
             _lastCheckedBalls = currentBalls;
+            _lastCheckedWickets = currentWickets;
           });
         }
       });
@@ -87,14 +102,16 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         }
       });
     }
-    // Check if new batsman is needed
-    else if (provider.needsNewBatsman && _lastCheckedBalls != currentBalls) {
+    // Check if new batsman is needed (check wickets instead of balls)
+    else if (provider.needsNewBatsman &&
+        _lastCheckedWickets != currentWickets) {
       _isDialogShowing = true;
+      _lastCheckedWickets =
+          currentWickets; // Update immediately to prevent duplicate
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
           PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
             _isDialogShowing = false;
-            _lastCheckedBalls = currentBalls;
           });
         }
       });
@@ -506,6 +523,61 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
           ],
         );
       },
+    );
+  }
+
+  void _showWicketNotification(String wicketInfo) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'WICKET!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    wicketInfo,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.errorRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
     );
   }
 
