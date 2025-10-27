@@ -212,11 +212,11 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         children: [
           const ModernScoreDisplay(),
           SizedBox(height: isSmallScreen ? 8 : 12),
-          // Combined Players Card
-          _buildCombinedPlayersCard(isSmallScreen),
-          SizedBox(height: isSmallScreen ? 8 : 12),
           // Combined Controls Card
           _buildCombinedControlsCard(isSmallScreen),
+          SizedBox(height: isSmallScreen ? 8 : 12),
+          // Combined Players Card
+          _buildCombinedPlayersCard(isSmallScreen),
           SizedBox(height: isSmallScreen ? 8 : 16), // Bottom padding
         ],
       ),
@@ -290,34 +290,6 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         children: [
           const ModernScoreDisplay(),
           SizedBox(height: isLargeTablet ? 20 : 16),
-          // Combined Players Card
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(isLargeTablet ? 20 : 16),
-            decoration: BoxDecoration(
-              color: AppTheme.cardBackground,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppTheme.textTertiary.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Expanded(child: ModernBatsmenCard()),
-                SizedBox(width: isLargeTablet ? 20 : 16),
-                Container(
-                  width: 1,
-                  height: 200,
-                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
-                ),
-                SizedBox(width: isLargeTablet ? 20 : 16),
-                const Expanded(child: ModernBowlerCard()),
-              ],
-            ),
-          ),
-          SizedBox(height: isLargeTablet ? 20 : 16),
           // Combined Controls Card
           Container(
             width: double.infinity,
@@ -345,6 +317,34 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
               ],
             ),
           ),
+          SizedBox(height: isLargeTablet ? 20 : 16),
+          // Combined Players Card
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(isLargeTablet ? 20 : 16),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(child: ModernBatsmenCard()),
+                SizedBox(width: isLargeTablet ? 20 : 16),
+                Container(
+                  width: 1,
+                  height: 200,
+                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                ),
+                SizedBox(width: isLargeTablet ? 20 : 16),
+                const Expanded(child: ModernBowlerCard()),
+              ],
+            ),
+          ),
           const SizedBox(height: 16), // Bottom padding
         ],
       ),
@@ -352,80 +352,66 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   }
 
   Widget _buildDesktopLayout(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
         children: [
-          Expanded(
-            flex: 2,
+          const ModernScoreDisplay(),
+          const SizedBox(height: 24),
+          // Combined Controls Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
             child: Column(
               children: [
-                const ModernScoreDisplay(),
-                const SizedBox(height: 24),
-                // Combined Players Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppTheme.cardBackground,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppTheme.textTertiary.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Expanded(child: ModernBatsmenCard()),
-                      const SizedBox(width: 24),
-                      Container(
-                        width: 1,
-                        height: 200,
-                        color: AppTheme.textTertiary.withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(width: 24),
-                      const Expanded(child: ModernBowlerCard()),
-                    ],
-                  ),
+                const ModernActionButtons(),
+                const SizedBox(height: 20),
+                Divider(
+                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                  thickness: 1,
                 ),
+                const SizedBox(height: 20),
+                const ModernScoreButtons(),
               ],
             ),
           ),
-          const SizedBox(width: 32),
-          Expanded(
-            flex: 1,
-            child: Column(
+          const SizedBox(height: 24),
+          // Combined Players Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Combined Controls Card
+                const Expanded(child: ModernBatsmenCard()),
+                const SizedBox(width: 24),
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppTheme.cardBackground,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppTheme.textTertiary.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      const ModernActionButtons(),
-                      const SizedBox(height: 20),
-                      Divider(
-                        color: AppTheme.textTertiary.withValues(alpha: 0.3),
-                        thickness: 1,
-                      ),
-                      const SizedBox(height: 20),
-                      const ModernScoreButtons(),
-                    ],
-                  ),
+                  width: 1,
+                  height: 200,
+                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
                 ),
+                const SizedBox(width: 24),
+                const Expanded(child: ModernBowlerCard()),
               ],
             ),
           ),
+          const SizedBox(height: 16), // Bottom padding
         ],
       ),
     );
