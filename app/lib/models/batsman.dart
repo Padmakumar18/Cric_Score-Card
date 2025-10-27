@@ -32,6 +32,12 @@ class Batsman {
     return 'not out';
   }
 
+  /// Get dismissal info for scorecard
+  String? get dismissalInfo {
+    if (!isOut) return null;
+    return dismissalType ?? 'out';
+  }
+
   /// Get display string with runs and balls
   String get scoreString => '$runs ($ballsFaced)';
 

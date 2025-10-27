@@ -21,17 +21,8 @@ class ModernBatsmenCard extends StatelessWidget {
 
         final currentBatsmen = innings.currentBatsmen;
 
-        return Container(
+        return SizedBox(
           width: double.infinity,
-          padding: EdgeInsets.all(isMobile ? (isSmallScreen ? 12 : 16) : 20),
-          decoration: BoxDecoration(
-            color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
-            border: Border.all(
-              color: AppTheme.accentBlue.withValues(alpha: 0.3),
-              width: 1,
-            ),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
