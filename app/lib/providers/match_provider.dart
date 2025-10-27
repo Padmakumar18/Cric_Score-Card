@@ -21,6 +21,7 @@ class MatchProvider extends ChangeNotifier {
     required String team1,
     required String team2,
     required int oversPerInnings,
+    required int totalPlayers,
     required String tossWinner,
     required String tossDecision,
   }) {
@@ -28,6 +29,7 @@ class MatchProvider extends ChangeNotifier {
       team1: team1,
       team2: team2,
       oversPerInnings: oversPerInnings,
+      totalPlayers: totalPlayers,
       tossWinner: tossWinner,
       tossDecision: tossDecision,
     );
@@ -238,6 +240,9 @@ class MatchProvider extends ChangeNotifier {
     final currentInnings = _currentMatch!.currentInnings!;
     final maxOvers = _currentMatch!.oversPerInnings;
     final maxBalls = maxOvers * 6;
+    final maxWickets =
+        _currentMatch!.totalPlayers -
+        1; // All out when (totalPlayers - 1) wickets fall
 
     bool shouldComplete = false;
     String? result;
@@ -245,13 +250,13 @@ class MatchProvider extends ChangeNotifier {
     // Check completion conditions
     if (currentInnings.ballsBowled >= maxBalls) {
       shouldComplete = true;
-    } else if (currentInnings.wickets >= 10) {
+    } else if (currentInnings.wickets >= maxWickets) {
       shouldComplete = true;
     } else if (currentInnings.target > 0 &&
         currentInnings.totalRuns >= currentInnings.target) {
       shouldComplete = true;
       result =
-          '${currentInnings.battingTeam} won by ${10 - currentInnings.wickets} wickets';
+          '${currentInnings.battingTeam} won by ${maxWickets - currentInnings.wickets} wickets';
     }
 
     if (shouldComplete) {
@@ -266,7 +271,7 @@ class MatchProvider extends ChangeNotifier {
           final secondInningsRuns = currentInnings.totalRuns;
           if (secondInningsRuns > firstInningsRuns) {
             result =
-                '${currentInnings.battingTeam} won by ${10 - currentInnings.wickets} wickets';
+                '${currentInnings.battingTeam} won by ${maxWickets - currentInnings.wickets} wickets';
           } else if (firstInningsRuns > secondInningsRuns) {
             result =
                 '${_currentMatch!.firstInnings!.battingTeam} won by ${firstInningsRuns - secondInningsRuns} runs';

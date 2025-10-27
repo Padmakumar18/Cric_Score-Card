@@ -7,6 +7,7 @@ class Match {
   final String team1;
   final String team2;
   final int oversPerInnings;
+  final int totalPlayers; // Total players per team
   final String tossWinner;
   final String tossDecision; // 'bat' or 'bowl'
   final Innings? firstInnings;
@@ -20,6 +21,7 @@ class Match {
     required this.team1,
     required this.team2,
     this.oversPerInnings = 20,
+    this.totalPlayers = 11,
     required this.tossWinner,
     required this.tossDecision,
     this.firstInnings,
@@ -82,6 +84,7 @@ class Match {
     String? team1,
     String? team2,
     int? oversPerInnings,
+    int? totalPlayers,
     String? tossWinner,
     String? tossDecision,
     Innings? firstInnings,
@@ -94,6 +97,7 @@ class Match {
       team1: team1 ?? this.team1,
       team2: team2 ?? this.team2,
       oversPerInnings: oversPerInnings ?? this.oversPerInnings,
+      totalPlayers: totalPlayers ?? this.totalPlayers,
       tossWinner: tossWinner ?? this.tossWinner,
       tossDecision: tossDecision ?? this.tossDecision,
       firstInnings: firstInnings ?? this.firstInnings,

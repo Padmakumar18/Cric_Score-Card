@@ -21,6 +21,7 @@ class ScoreboardScreen extends StatefulWidget {
 class _ScoreboardScreenState extends State<ScoreboardScreen> {
   bool _isDialogShowing = false;
   int _lastCheckedBalls = -1;
+  bool _hasShownResultDialog = false;
 
   @override
   void initState() {
@@ -31,12 +32,33 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   }
 
   void _checkForDialogs() {
-    if (_isDialogShowing) return; // Prevent multiple dialogs
-
     final provider = context.read<MatchProvider>();
     final match = provider.currentMatch;
 
     if (match == null) return;
+
+    // Debug: Print match status
+    debugPrint('Match status: ${match.status}');
+    debugPrint('Has shown result dialog: $_hasShownResultDialog');
+
+    // Check if match is completed and show result dialog (highest priority)
+    if (match.status == AppConstants.statusCompleted &&
+        !_hasShownResultDialog) {
+      debugPrint('Showing match result dialog');
+      _hasShownResultDialog = true;
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          debugPrint('Displaying result: ${match.result}');
+          _showMatchResultDialog(context, match.result ?? 'Match completed');
+        }
+      });
+      return;
+    }
+
+    // Don't show other dialogs if one is already showing or match is completed
+    if (_isDialogShowing || match.status == AppConstants.statusCompleted) {
+      return;
+    }
 
     final currentBalls = match.currentInnings?.ballsBowled ?? 0;
 
@@ -260,6 +282,101 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     );
   }
 
+  void _showMatchResultDialog(BuildContext context, String result) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardBackground,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.successGreen.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.emoji_events,
+                  color: AppTheme.successGreen,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Match Completed!',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Text(
+                  result,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                '🎉 Congratulations! 🎉',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  context.read<MatchProvider>().resetMatch();
+                  Navigator.of(context).pop(); // Close dialog
+                  Navigator.of(context).pop(); // Go back to home
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.home),
+                label: const Text(
+                  'Go to Home',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showResetDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -275,12 +392,17 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
             style: TextStyle(color: AppTheme.textSecondary),
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppTheme.accentBlue),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppTheme.primaryBlue,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -290,6 +412,10 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.errorRed,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
               child: const Text('Reset'),
             ),
