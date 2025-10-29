@@ -81,39 +81,53 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         match.status == AppConstants.statusFirstInnings) {
       _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          PlayerDialogs.showInningsSwitchDialog(context, provider).then((_) {
-            _isDialogShowing = false;
-            _lastCheckedBalls = currentBalls;
-            _lastCheckedWickets = currentWickets;
-          });
-        }
+        if (mounted && !_isDialogShowing)
+          return; // Double-check dialog isn't already dismissed
+        PlayerDialogs.showInningsSwitchDialog(context, provider).then((_) {
+          if (mounted) {
+            setState(() {
+              _isDialogShowing = false;
+              _lastCheckedBalls = currentBalls;
+              _lastCheckedWickets = currentWickets;
+            });
+          }
+        });
       });
     }
     // Check if new bowler is needed
     else if (provider.needsNewBowler && _lastCheckedBalls != currentBalls) {
+      _lastCheckedBalls =
+          currentBalls; // Update immediately to prevent duplicate
       _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          PlayerDialogs.showNewBowlerDialog(context, provider).then((_) {
-            _isDialogShowing = false;
-            _lastCheckedBalls = currentBalls;
-          });
-        }
+        if (mounted && !_isDialogShowing)
+          return; // Double-check dialog isn't already dismissed
+        PlayerDialogs.showNewBowlerDialog(context, provider).then((_) {
+          if (mounted) {
+            setState(() {
+              _isDialogShowing = false;
+              _lastCheckedBalls = currentBalls;
+            });
+          }
+        });
       });
     }
     // Check if new batsman is needed (check wickets instead of balls)
     else if (provider.needsNewBatsman &&
         _lastCheckedWickets != currentWickets) {
-      _isDialogShowing = true;
       _lastCheckedWickets =
           currentWickets; // Update immediately to prevent duplicate
+      _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
-            _isDialogShowing = false;
-          });
-        }
+        if (mounted && !_isDialogShowing)
+          return; // Double-check dialog isn't already dismissed
+        PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
+          if (mounted) {
+            setState(() {
+              _isDialogShowing = false;
+            });
+          }
+        });
       });
     }
   }

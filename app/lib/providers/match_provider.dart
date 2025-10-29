@@ -398,7 +398,15 @@ class MatchProvider extends ChangeNotifier {
     if (currentInnings == null) return false;
 
     final activeBatsmen = currentInnings.batsmen.where((b) => !b.isOut).length;
-    return activeBatsmen < 2 && currentInnings.wickets < 10;
+    final maxWickets = _currentMatch!.totalPlayers - 1;
+
+    // Need new batsman only if:
+    // 1. Less than 2 active batsmen
+    // 2. Haven't reached maximum wickets
+    // 3. Innings is not complete
+    return activeBatsmen < 2 &&
+        currentInnings.wickets < maxWickets &&
+        !currentInnings.isComplete;
   }
 
   /// Add new batsman to current innings
@@ -414,12 +422,37 @@ class MatchProvider extends ChangeNotifier {
         return;
       }
 
+      // Check if batsman with this name already exists
+      final existingBatsman = currentInnings.batsmen
+          .where((b) => b.name.toLowerCase() == name.toLowerCase())
+          .toList();
+
+      if (existingBatsman.isNotEmpty) {
+        debugPrint('MatchProvider: Batsman with name "$name" already exists');
+        return;
+      }
+
+      // Check if we already have 2 active batsmen (shouldn't happen, but safeguard)
+      final activeBatsmen = currentInnings.batsmen
+          .where((b) => !b.isOut)
+          .length;
+      if (activeBatsmen >= 2) {
+        debugPrint(
+          'MatchProvider: Already have 2 active batsmen, cannot add more',
+        );
+        return;
+      }
+
       // Ensure the new batsman comes in as non-striker if there's already a striker
       final hasStriker = currentInnings.batsmen.any(
         (b) => b.isOnStrike && !b.isOut,
       );
       final newBatsman = Batsman(name: name, isOnStrike: !hasStriker);
       final updatedBatsmen = [...currentInnings.batsmen, newBatsman];
+
+      debugPrint(
+        'MatchProvider: Adding new batsman "$name" (total batsmen: ${updatedBatsmen.length})',
+      );
 
       final updatedInnings = currentInnings.copyWith(batsmen: updatedBatsmen);
 

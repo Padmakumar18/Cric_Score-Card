@@ -303,11 +303,25 @@ class ScorecardScreen extends StatelessWidget {
         const SizedBox(height: 4),
         // Batsmen Rows
         ...innings.batsmen.map((batsman) {
+          final isCurrentlyBatting =
+              !batsman.isOut &&
+              innings.batsmen.where((b) => !b.isOut).take(2).contains(batsman);
+
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
             decoration: BoxDecoration(
-              color: batsman.isOut ? AppTheme.surfaceDark : Colors.transparent,
+              color: batsman.isOut
+                  ? AppTheme.surfaceDark
+                  : isCurrentlyBatting
+                  ? AppTheme.successGreen.withValues(alpha: 0.05)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(6),
+              border: isCurrentlyBatting
+                  ? Border.all(
+                      color: AppTheme.successGreen.withValues(alpha: 0.3),
+                      width: 1,
+                    )
+                  : null,
             ),
             child: Row(
               children: [
@@ -316,34 +330,82 @@ class ScorecardScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        batsman.name,
-                        style: TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 13,
-                          fontWeight: batsman.isOut
-                              ? FontWeight.normal
-                              : FontWeight.w600,
-                        ),
+                      Row(
+                        children: [
+                          if (isCurrentlyBatting) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: batsman.isOnStrike
+                                    ? AppTheme.successGreen
+                                    : AppTheme.accentBlue,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.circle,
+                                    size: 6,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    batsman.isOnStrike ? 'LIVE' : 'BAT',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          Expanded(
+                            child: Text(
+                              batsman.name,
+                              style: TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontSize: 13,
+                                fontWeight: isCurrentlyBatting
+                                    ? FontWeight.w600
+                                    : batsman.isOut
+                                    ? FontWeight.normal
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       if (batsman.isOut) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          batsman.dismissalInfo ?? 'out',
-                          style: const TextStyle(
-                            color: AppTheme.errorRed,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ] else if (!batsman.isOut &&
-                          innings.batsmen.indexOf(batsman) < 2) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          batsman.isOnStrike ? 'batting*' : 'batting',
-                          style: const TextStyle(
-                            color: AppTheme.successGreen,
-                            fontSize: 11,
-                          ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.cancel_outlined,
+                              size: 12,
+                              color: AppTheme.errorRed.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                batsman.dismissalInfo ?? 'out',
+                                style: TextStyle(
+                                  color: AppTheme.errorRed.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                  fontSize: 11,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ],
