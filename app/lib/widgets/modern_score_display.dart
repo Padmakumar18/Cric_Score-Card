@@ -166,36 +166,53 @@ class ModernScoreDisplay extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildStatChip(
-                    'Target',
-                    innings.target > 0 ? innings.target.toString() : '-',
-                    AppTheme.warningOrange,
-                    isMobile,
-                    isSmallScreen,
-                  ),
-                  _buildStatChip(
-                    'CRR',
-                    innings.runRate.toStringAsFixed(2),
-                    AppTheme.accentBlue,
-                    isMobile,
-                    isSmallScreen,
-                  ),
-                  if (innings.target > 0)
+                  if (innings.target > 0) ...[
+                    _buildStatChip(
+                      'Target',
+                      innings.target.toString(),
+                      AppTheme.warningOrange,
+                      isMobile,
+                      isSmallScreen,
+                    ),
+                    _buildStatChip(
+                      'CRR',
+                      innings.runRate.toStringAsFixed(2),
+                      AppTheme.accentBlue,
+                      isMobile,
+                      isSmallScreen,
+                    ),
                     _buildStatChip(
                       'RRR',
-                      innings.requiredRunRate.toStringAsFixed(2),
+                      innings.getRequiredRunRate(totalOvers).toStringAsFixed(2),
                       AppTheme.errorRed,
                       isMobile,
                       isSmallScreen,
-                    )
-                  else
+                    ),
+                  ] else ...[
                     _buildStatChip(
-                      'Players',
-                      '${innings.batsmen.where((b) => !b.isOut).length}',
+                      'CRR',
+                      innings.runRate.toStringAsFixed(2),
+                      AppTheme.accentBlue,
+                      isMobile,
+                      isSmallScreen,
+                    ),
+                    _buildStatChip(
+                      'Projected',
+                      innings.getProjectedTotal(totalOvers).toString(),
                       AppTheme.successGreen,
                       isMobile,
                       isSmallScreen,
                     ),
+                    _buildStatChip(
+                      'This Over',
+                      currentOver != null
+                          ? currentOver.runsScored.toString()
+                          : '0',
+                      AppTheme.primaryBlue,
+                      isMobile,
+                      isSmallScreen,
+                    ),
+                  ],
                 ],
               ),
 

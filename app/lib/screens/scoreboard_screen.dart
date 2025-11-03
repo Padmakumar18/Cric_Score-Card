@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/modern_score_display.dart';
@@ -153,6 +154,22 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
+                  size: 22,
+                ),
+                tooltip: themeProvider.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+              );
+            },
+          ),
           Consumer<MatchProvider>(
             builder: (context, provider, child) {
               return IconButton(

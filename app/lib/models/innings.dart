@@ -53,7 +53,17 @@ class Innings {
     return (totalRuns / ballsBowled) * 6;
   }
 
-  /// Get required run rate (for chasing team)
+  /// Get required run rate (for chasing team) with total overs
+  double getRequiredRunRate(int totalOvers) {
+    if (target == 0) return 0.0;
+    final remainingRuns = target - totalRuns;
+    final totalBalls = totalOvers * 6;
+    final remainingBalls = totalBalls - ballsBowled;
+    if (remainingBalls <= 0) return 0.0;
+    return (remainingRuns / remainingBalls) * 6;
+  }
+
+  /// Get required run rate (for chasing team) - default T20
   double get requiredRunRate {
     if (target == 0) return 0.0;
     final remainingRuns = target - totalRuns;
@@ -68,7 +78,14 @@ class Innings {
     return totalBalls - ballsBowled;
   }
 
-  /// Get projected total
+  /// Get projected total (needs total overs from match)
+  int getProjectedTotal(int totalOvers) {
+    if (ballsBowled == 0) return 0;
+    final totalBalls = totalOvers * 6;
+    return ((totalRuns / ballsBowled) * totalBalls).round();
+  }
+
+  /// Get projected total (default T20)
   int get projectedTotal {
     if (ballsBowled == 0) return 0;
     return ((totalRuns / ballsBowled) * (20 * 6)).round(); // Assuming T20
