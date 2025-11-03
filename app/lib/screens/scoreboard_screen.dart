@@ -51,18 +51,12 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       });
     }
 
-    // Debug: Print match status
-    debugPrint('Match status: ${match.status}');
-    debugPrint('Has shown result dialog: $_hasShownResultDialog');
-
     // Check if match is completed and show result dialog (highest priority)
     if (match.status == AppConstants.statusCompleted &&
         !_hasShownResultDialog) {
-      debugPrint('Showing match result dialog');
       _hasShownResultDialog = true;
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) {
-          debugPrint('Displaying result: ${match.result}');
           _showMatchResultDialog(context, match.result ?? 'Match completed');
         }
       });
@@ -81,47 +75,44 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     if (match.isFirstInningsComplete &&
         match.status == AppConstants.statusFirstInnings) {
       _isDialogShowing = true;
+      _lastCheckedBalls = currentBalls;
+      _lastCheckedWickets = currentWickets;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted && !_isDialogShowing)
-          return; // Double-check dialog isn't already dismissed
+        if (!mounted || !_isDialogShowing) return;
         PlayerDialogs.showInningsSwitchDialog(context, provider).then((_) {
           if (mounted) {
             setState(() {
               _isDialogShowing = false;
-              _lastCheckedBalls = currentBalls;
-              _lastCheckedWickets = currentWickets;
             });
           }
         });
       });
+      return; // Exit early to prevent other dialogs
     }
+
     // Check if new bowler is needed
-    else if (provider.needsNewBowler && _lastCheckedBalls != currentBalls) {
-      _lastCheckedBalls =
-          currentBalls; // Update immediately to prevent duplicate
+    if (provider.needsNewBowler && _lastCheckedBalls != currentBalls) {
+      _lastCheckedBalls = currentBalls;
       _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted && !_isDialogShowing)
-          return; // Double-check dialog isn't already dismissed
+        if (!mounted || !_isDialogShowing) return;
         PlayerDialogs.showNewBowlerDialog(context, provider).then((_) {
           if (mounted) {
             setState(() {
               _isDialogShowing = false;
-              _lastCheckedBalls = currentBalls;
             });
           }
         });
       });
+      return; // Exit early to prevent other dialogs
     }
+
     // Check if new batsman is needed (check wickets instead of balls)
-    else if (provider.needsNewBatsman &&
-        _lastCheckedWickets != currentWickets) {
-      _lastCheckedWickets =
-          currentWickets; // Update immediately to prevent duplicate
+    if (provider.needsNewBatsman && _lastCheckedWickets != currentWickets) {
+      _lastCheckedWickets = currentWickets;
       _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted && !_isDialogShowing)
-          return; // Double-check dialog isn't already dismissed
+        if (!mounted || !_isDialogShowing) return;
         PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
           if (mounted) {
             setState(() {
@@ -130,6 +121,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
           }
         });
       });
+      return; // Exit early
     }
   }
 

@@ -372,7 +372,7 @@ class ScorecardScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildBattingTable(innings, isMobile),
+                _buildBattingTable(context, innings, isMobile),
               ],
             ),
           ),
@@ -405,7 +405,7 @@ class ScorecardScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildBowlingTable(innings, isMobile),
+                _buildBowlingTable(context, innings, isMobile),
               ],
             ),
           ),
@@ -518,32 +518,32 @@ class ScorecardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBattingTable(Innings innings, bool isMobile) {
+  Widget _buildBattingTable(
+    BuildContext context,
+    Innings innings,
+    bool isMobile,
+  ) {
     return Column(
       children: [
         // Header
         Container(
-          padding: EdgeInsets.symmetric(
-            vertical: isMobile ? 10 : 12,
-            horizontal: isMobile ? 10 : 12,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.surfaceBlue.withValues(alpha: 0.8),
-                AppTheme.surfaceBlue.withValues(alpha: 0.6),
-              ],
-            ),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppTheme.darkSurface.withValues(alpha: 0.5)
+                : Colors.grey.shade200,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
-            children: const [
+            children: [
               Expanded(
-                flex: 3,
+                flex: 4,
                 child: Text(
-                  'Batsman',
+                  'Batter',
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.3,
@@ -551,12 +551,14 @@ class ScorecardScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(
-                width: 35,
+                width: 40,
                 child: Text(
                   'R',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -568,7 +570,9 @@ class ScorecardScreen extends StatelessWidget {
                   'B',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -580,7 +584,9 @@ class ScorecardScreen extends StatelessWidget {
                   '4s',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -592,19 +598,23 @@ class ScorecardScreen extends StatelessWidget {
                   '6s',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               SizedBox(
-                width: 40,
+                width: 45,
                 child: Text(
                   'SR',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -613,7 +623,7 @@ class ScorecardScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         // Batsmen Rows
         ...innings.batsmen.map((batsman) {
           final isCurrentlyBatting =
@@ -621,31 +631,55 @@ class ScorecardScreen extends StatelessWidget {
               innings.batsmen.where((b) => !b.isOut).take(2).contains(batsman);
 
           return Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+            margin: const EdgeInsets.only(bottom: 2),
             decoration: BoxDecoration(
-              color: batsman.isOut
-                  ? AppTheme.surfaceDark
-                  : isCurrentlyBatting
-                  ? AppTheme.successGreen.withValues(alpha: 0.05)
+              color: isCurrentlyBatting
+                  ? (Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.successGreen.withValues(alpha: 0.1)
+                        : AppTheme.successGreen.withValues(alpha: 0.05))
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: isCurrentlyBatting
-                  ? Border.all(
-                      color: AppTheme.successGreen.withValues(alpha: 0.3),
-                      width: 1,
-                    )
-                  : null,
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  flex: 3,
+                  flex: 4,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
+                          Expanded(
+                            child: Text(
+                              batsman.name,
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? (isCurrentlyBatting
+                                          ? AppTheme.infoBlue
+                                          : AppTheme.darkTextPrimary)
+                                    : (isCurrentlyBatting
+                                          ? AppTheme.lightPrimary
+                                          : AppTheme.lightTextPrimary),
+                                fontSize: 14,
+                                fontWeight: isCurrentlyBatting
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                          ),
                           if (isCurrentlyBatting) ...[
+                            const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
@@ -654,84 +688,59 @@ class ScorecardScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: batsman.isOnStrike
                                     ? AppTheme.successGreen
-                                    : AppTheme.accentBlue,
-                                borderRadius: BorderRadius.circular(4),
+                                    : AppTheme.infoBlue,
+                                borderRadius: BorderRadius.circular(3),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    size: 6,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    batsman.isOnStrike ? 'LIVE' : 'BAT',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                          ],
-                          Expanded(
-                            child: Text(
-                              batsman.name,
-                              style: TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 13,
-                                fontWeight: isCurrentlyBatting
-                                    ? FontWeight.w600
-                                    : batsman.isOut
-                                    ? FontWeight.normal
-                                    : FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (batsman.isOut) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.cancel_outlined,
-                              size: 12,
-                              color: AppTheme.errorRed.withValues(alpha: 0.7),
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
                               child: Text(
-                                batsman.dismissalInfo ?? 'out',
-                                style: TextStyle(
-                                  color: AppTheme.errorRed.withValues(
-                                    alpha: 0.9,
-                                  ),
-                                  fontSize: 11,
-                                  fontStyle: FontStyle.italic,
+                                batsman.isOnStrike ? '*' : '',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ],
+                        ],
+                      ),
+                      if (batsman.isOut) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          batsman.dismissalInfo ?? 'out',
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? AppTheme.darkTextTertiary
+                                : AppTheme.lightTextSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ] else if (!isCurrentlyBatting) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'not out',
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? AppTheme.darkTextTertiary
+                                : AppTheme.lightTextSecondary,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ],
                   ),
                 ),
                 SizedBox(
-                  width: 35,
+                  width: 40,
                   child: Text(
                     batsman.runs.toString(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 13,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -741,8 +750,10 @@ class ScorecardScreen extends StatelessWidget {
                   child: Text(
                     batsman.ballsFaced.toString(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -752,8 +763,10 @@ class ScorecardScreen extends StatelessWidget {
                   child: Text(
                     batsman.fours.toString(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -763,19 +776,23 @@ class ScorecardScreen extends StatelessWidget {
                   child: Text(
                     batsman.sixes.toString(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
                       fontSize: 13,
                     ),
                   ),
                 ),
                 SizedBox(
-                  width: 40,
+                  width: 45,
                   child: Text(
-                    batsman.strikeRate.toStringAsFixed(0),
+                    batsman.strikeRate.toStringAsFixed(2),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -784,44 +801,40 @@ class ScorecardScreen extends StatelessWidget {
             ),
           );
         }),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         // Extras
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceBlue.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: AppTheme.textTertiary.withValues(alpha: 0.2),
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.grey.shade300,
+                width: 1,
+              ),
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: const [
-                  Icon(
-                    Icons.add_circle_outline,
-                    size: 16,
-                    color: AppTheme.textSecondary,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    'Extras',
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+              Text(
+                'Extras',
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
-                innings.extras.toString(),
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                '${innings.extras} (b 0, lb 0, w 0, nb 0, p 0)',
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.lightTextSecondary,
+                  fontSize: 13,
                 ),
               ),
             ],
@@ -830,37 +843,33 @@ class ScorecardScreen extends StatelessWidget {
         const SizedBox(height: 8),
         // Total
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.primaryBlue.withValues(alpha: 0.15),
-                AppTheme.accentBlue.withValues(alpha: 0.1),
-              ],
-            ),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppTheme.darkPrimary.withValues(alpha: 0.15)
+                : AppTheme.lightPrimary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: AppTheme.primaryBlue.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'TOTAL',
+              Text(
+                'Total',
                 style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 14,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
                 ),
               ),
               Text(
-                '${innings.totalRuns}/${innings.wickets} (${innings.oversString} ov)',
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 15,
+                '${innings.totalRuns}-${innings.wickets} (${innings.oversString} Overs, RR: ${innings.runRate.toStringAsFixed(2)})',
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -871,32 +880,32 @@ class ScorecardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBowlingTable(Innings innings, bool isMobile) {
+  Widget _buildBowlingTable(
+    BuildContext context,
+    Innings innings,
+    bool isMobile,
+  ) {
     return Column(
       children: [
         // Header
         Container(
-          padding: EdgeInsets.symmetric(
-            vertical: isMobile ? 10 : 12,
-            horizontal: isMobile ? 10 : 12,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.surfaceBlue.withValues(alpha: 0.8),
-                AppTheme.surfaceBlue.withValues(alpha: 0.6),
-              ],
-            ),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppTheme.darkSurface.withValues(alpha: 0.5)
+                : Colors.grey.shade200,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Row(
+          child: Row(
             children: [
               Expanded(
                 flex: 3,
                 child: Text(
                   'Bowler',
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.3,
@@ -904,12 +913,14 @@ class ScorecardScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(
-                width: 40,
+                width: 35,
                 child: Text(
                   'O',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -921,7 +932,9 @@ class ScorecardScreen extends StatelessWidget {
                   'M',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -933,7 +946,9 @@ class ScorecardScreen extends StatelessWidget {
                   'R',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -945,7 +960,37 @@ class ScorecardScreen extends StatelessWidget {
                   'W',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 35,
+                child: Text(
+                  'NB',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 35,
+                child: Text(
+                  'WD',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -954,10 +999,12 @@ class ScorecardScreen extends StatelessWidget {
               SizedBox(
                 width: 45,
                 child: Text(
-                  'Econ',
+                  'ECO',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -966,16 +1013,26 @@ class ScorecardScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         // Bowlers Rows
         ...innings.bowlers.map((bowler) {
           return Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+            margin: const EdgeInsets.only(bottom: 2),
             decoration: BoxDecoration(
               color: bowler.isCurrentBowler
-                  ? AppTheme.successGreen.withValues(alpha: 0.1)
+                  ? (Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.successGreen.withValues(alpha: 0.1)
+                        : AppTheme.successGreen.withValues(alpha: 0.05))
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
             ),
             child: Row(
               children: [
@@ -984,21 +1041,29 @@ class ScorecardScreen extends StatelessWidget {
                   child: Text(
                     bowler.name,
                     style: TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 13,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? (bowler.isCurrentBowler
+                                ? AppTheme.infoBlue
+                                : AppTheme.darkTextPrimary)
+                          : (bowler.isCurrentBowler
+                                ? AppTheme.lightPrimary
+                                : AppTheme.lightTextPrimary),
+                      fontSize: 14,
                       fontWeight: bowler.isCurrentBowler
                           ? FontWeight.w600
-                          : FontWeight.normal,
+                          : FontWeight.w500,
                     ),
                   ),
                 ),
                 SizedBox(
-                  width: 40,
+                  width: 35,
                   child: Text(
                     bowler.oversString,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1009,8 +1074,10 @@ class ScorecardScreen extends StatelessWidget {
                   child: Text(
                     bowler.maidens.toString(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -1020,8 +1087,10 @@ class ScorecardScreen extends StatelessWidget {
                   child: Text(
                     bowler.runsConceded.toString(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -1031,20 +1100,50 @@ class ScorecardScreen extends StatelessWidget {
                   child: Text(
                     bowler.wickets.toString(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
                 SizedBox(
+                  width: 35,
+                  child: Text(
+                    '0', // Placeholder for no balls
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 35,
+                  child: Text(
+                    '0', // Placeholder for wides
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                SizedBox(
                   width: 45,
                   child: Text(
-                    bowler.economyRate.toStringAsFixed(1),
+                    bowler.economyRate.toStringAsFixed(2),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
                       fontSize: 13,
                     ),
                   ),
