@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/tournament_provider.dart';
 import '../theme/app_theme.dart';
 import 'match_setup_screen.dart';
 import 'scoreboard_screen.dart';
+import 'tournament_create_screen.dart';
+import 'tournament_dashboard_screen.dart';
 import '../widgets/responsive_layout.dart';
 
 /// Home screen with navigation to different app sections
@@ -76,46 +79,72 @@ class HomeScreen extends StatelessWidget {
 
               // Action buttons
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.2,
-                  children: [
-                    _buildActionCard(
-                      context,
-                      title: 'New Match',
-                      subtitle: 'Start a new cricket match',
-                      icon: Icons.sports_cricket,
-                      color: AppTheme.primaryGreen,
-                      onTap: () => _navigateToMatchSetup(context),
-                    ),
-                    if (matchProvider.currentMatch != null)
+                child: Consumer<TournamentProvider>(
+                  builder: (context, tournamentProvider, child) {
+                    final cards = <Widget>[
                       _buildActionCard(
                         context,
-                        title: 'Continue Match',
-                        subtitle: 'Resume current match',
-                        icon: Icons.play_arrow,
-                        color: AppTheme.accentSaffron,
-                        onTap: () => _navigateToScoreboard(context),
+                        title: 'Create Tournament',
+                        subtitle: 'Multi-team tournament with fixtures',
+                        icon: Icons.emoji_events,
+                        color: AppTheme.successGreen,
+                        onTap: () => _navigateToTournamentCreate(context),
                       ),
-                    _buildActionCard(
-                      context,
-                      title: 'Match History',
-                      subtitle: 'View past matches',
-                      icon: Icons.history,
-                      color: AppTheme.lightGreen,
-                      onTap: () => _showComingSoon(context),
-                    ),
-                    _buildActionCard(
-                      context,
-                      title: 'Settings',
-                      subtitle: 'App preferences',
-                      icon: Icons.settings,
-                      color: AppTheme.darkBrown,
-                      onTap: () => _showComingSoon(context),
-                    ),
-                  ],
+                      _buildActionCard(
+                        context,
+                        title: 'Quick Match',
+                        subtitle: '2 teams • Single match',
+                        icon: Icons.sports_cricket,
+                        color: AppTheme.primaryGreen,
+                        onTap: () => _navigateToMatchSetup(context),
+                      ),
+                    ];
+
+                    if (tournamentProvider.currentTournament != null) {
+                      cards.add(
+                        _buildActionCard(
+                          context,
+                          title: 'My Tournament',
+                          subtitle: 'Fixtures • Points Table • Matches',
+                          icon: Icons.leaderboard,
+                          color: AppTheme.warningOrange,
+                          onTap: () => _navigateToTournamentDashboard(context),
+                        ),
+                      );
+                    }
+
+                    if (matchProvider.currentMatch != null) {
+                      cards.add(
+                        _buildActionCard(
+                          context,
+                          title: 'Continue Match',
+                          subtitle: 'Resume ongoing match',
+                          icon: Icons.play_arrow,
+                          color: AppTheme.accentSaffron,
+                          onTap: () => _navigateToScoreboard(context),
+                        ),
+                      );
+                    }
+
+                    cards.add(
+                      _buildActionCard(
+                        context,
+                        title: 'Settings',
+                        subtitle: 'App preferences',
+                        icon: Icons.settings,
+                        color: AppTheme.darkBrown,
+                        onTap: () => _showComingSoon(context),
+                      ),
+                    );
+
+                    return GridView.count(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.2,
+                      children: cards,
+                    );
+                  },
                 ),
               ),
             ],
@@ -270,6 +299,20 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => const ScoreboardScreen()));
+  }
+
+  void _navigateToTournamentCreate(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const TournamentCreateScreen()),
+    );
+  }
+
+  void _navigateToTournamentDashboard(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const TournamentDashboardScreen(),
+      ),
+    );
   }
 
   void _showComingSoon(BuildContext context) {

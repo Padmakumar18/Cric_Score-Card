@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/match_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/tournament_provider.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
@@ -21,6 +22,7 @@ class CricketScoreboardApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => MatchProvider()),
+        ChangeNotifierProvider(create: (_) => TournamentProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
