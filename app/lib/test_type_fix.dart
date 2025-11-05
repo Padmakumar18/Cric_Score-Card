@@ -51,6 +51,7 @@ class _TypeFixTestScreenState extends State<TypeFixTestScreen> {
         team1: 'Team A',
         team2: 'Team B',
         oversPerInnings: 20,
+        totalPlayers: 11,
         tossWinner: 'Team A',
         tossDecision: 'bat',
       );

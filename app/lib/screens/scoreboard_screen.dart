@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/modern_score_display.dart';
@@ -21,6 +22,9 @@ class ScoreboardScreen extends StatefulWidget {
 class _ScoreboardScreenState extends State<ScoreboardScreen> {
   bool _isDialogShowing = false;
   int _lastCheckedBalls = -1;
+  int _lastCheckedWickets = -1;
+  bool _hasShownResultDialog = false;
+  String? _lastShownWicket;
 
   @override
   void initState() {
@@ -31,51 +35,93 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   }
 
   void _checkForDialogs() {
-    if (_isDialogShowing) return; // Prevent multiple dialogs
-
     final provider = context.read<MatchProvider>();
     final match = provider.currentMatch;
 
     if (match == null) return;
 
+    // Check for wicket notification
+    if (provider.lastWicketInfo != null &&
+        provider.lastWicketInfo != _lastShownWicket) {
+      _lastShownWicket = provider.lastWicketInfo;
+      _showWicketNotification(provider.lastWicketInfo!);
+      // Clear the wicket info after showing
+      Future.delayed(const Duration(milliseconds: 100), () {
+        provider.clearLastWicketInfo();
+      });
+    }
+
+    // Check if match is completed and show result dialog (highest priority)
+    if (match.status == AppConstants.statusCompleted &&
+        !_hasShownResultDialog) {
+      _hasShownResultDialog = true;
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          _showMatchResultDialog(context, match.result ?? 'Match completed');
+        }
+      });
+      return;
+    }
+
+    // Don't show other dialogs if one is already showing or match is completed
+    if (_isDialogShowing || match.status == AppConstants.statusCompleted) {
+      return;
+    }
+
     final currentBalls = match.currentInnings?.ballsBowled ?? 0;
+    final currentWickets = match.currentInnings?.wickets ?? 0;
 
     // Check if first innings is complete and need to start second innings
     if (match.isFirstInningsComplete &&
         match.status == AppConstants.statusFirstInnings) {
       _isDialogShowing = true;
+      _lastCheckedBalls = currentBalls;
+      _lastCheckedWickets = currentWickets;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          PlayerDialogs.showInningsSwitchDialog(context, provider).then((_) {
-            _isDialogShowing = false;
-            _lastCheckedBalls = currentBalls;
-          });
-        }
+        if (!mounted || !_isDialogShowing) return;
+        PlayerDialogs.showInningsSwitchDialog(context, provider).then((_) {
+          if (mounted) {
+            setState(() {
+              _isDialogShowing = false;
+            });
+          }
+        });
       });
+      return; // Exit early to prevent other dialogs
     }
+
     // Check if new bowler is needed
-    else if (provider.needsNewBowler && _lastCheckedBalls != currentBalls) {
+    if (provider.needsNewBowler && _lastCheckedBalls != currentBalls) {
+      _lastCheckedBalls = currentBalls;
       _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          PlayerDialogs.showNewBowlerDialog(context, provider).then((_) {
-            _isDialogShowing = false;
-            _lastCheckedBalls = currentBalls;
-          });
-        }
+        if (!mounted || !_isDialogShowing) return;
+        PlayerDialogs.showNewBowlerDialog(context, provider).then((_) {
+          if (mounted) {
+            setState(() {
+              _isDialogShowing = false;
+            });
+          }
+        });
       });
+      return; // Exit early to prevent other dialogs
     }
-    // Check if new batsman is needed
-    else if (provider.needsNewBatsman && _lastCheckedBalls != currentBalls) {
+
+    // Check if new batsman is needed (check wickets instead of balls)
+    if (provider.needsNewBatsman && _lastCheckedWickets != currentWickets) {
+      _lastCheckedWickets = currentWickets;
       _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
-            _isDialogShowing = false;
-            _lastCheckedBalls = currentBalls;
-          });
-        }
+        if (!mounted || !_isDialogShowing) return;
+        PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
+          if (mounted) {
+            setState(() {
+              _isDialogShowing = false;
+            });
+          }
+        });
       });
+      return; // Exit early
     }
   }
 
@@ -100,6 +146,22 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
+                  size: 22,
+                ),
+                tooltip: themeProvider.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+              );
+            },
+          ),
           Consumer<MatchProvider>(
             builder: (context, provider, child) {
               return IconButton(
@@ -173,14 +235,66 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         children: [
           const ModernScoreDisplay(),
           SizedBox(height: isSmallScreen ? 8 : 12),
-          const ModernBatsmenCard(),
+          // Combined Controls Card
+          _buildCombinedControlsCard(isSmallScreen),
           SizedBox(height: isSmallScreen ? 8 : 12),
-          const ModernBowlerCard(),
-          SizedBox(height: isSmallScreen ? 8 : 12),
-          const ModernActionButtons(),
-          SizedBox(height: isSmallScreen ? 8 : 12),
-          const ModernScoreButtons(),
+          // Combined Players Card
+          _buildCombinedPlayersCard(isSmallScreen),
           SizedBox(height: isSmallScreen ? 8 : 16), // Bottom padding
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCombinedPlayersCard(bool isSmallScreen) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+        border: Border.all(
+          color: AppTheme.textTertiary.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          const ModernBatsmenCard(),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Divider(
+            color: AppTheme.textTertiary.withValues(alpha: 0.3),
+            thickness: 1,
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          const ModernBowlerCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCombinedControlsCard(bool isSmallScreen) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+        border: Border.all(
+          color: AppTheme.textTertiary.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          const ModernActionButtons(),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Divider(
+            color: AppTheme.textTertiary.withValues(alpha: 0.3),
+            thickness: 1,
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          const ModernScoreButtons(),
         ],
       ),
     );
@@ -199,22 +313,60 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         children: [
           const ModernScoreDisplay(),
           SizedBox(height: isLargeTablet ? 20 : 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Expanded(child: ModernBatsmenCard()),
-              SizedBox(width: isLargeTablet ? 20 : 16),
-              const Expanded(child: ModernBowlerCard()),
-            ],
+          // Combined Controls Card
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(isLargeTablet ? 20 : 16),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(child: ModernActionButtons()),
+                SizedBox(width: isLargeTablet ? 20 : 16),
+                Container(
+                  width: 1,
+                  height: 200,
+                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                ),
+                SizedBox(width: isLargeTablet ? 20 : 16),
+                const Expanded(child: ModernScoreButtons()),
+              ],
+            ),
           ),
           SizedBox(height: isLargeTablet ? 20 : 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Expanded(child: ModernActionButtons()),
-              SizedBox(width: isLargeTablet ? 20 : 16),
-              const Expanded(child: ModernScoreButtons()),
-            ],
+          // Combined Players Card
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(isLargeTablet ? 20 : 16),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(child: ModernBatsmenCard()),
+                SizedBox(width: isLargeTablet ? 20 : 16),
+                Container(
+                  width: 1,
+                  height: 200,
+                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                ),
+                SizedBox(width: isLargeTablet ? 20 : 16),
+                const Expanded(child: ModernBowlerCard()),
+              ],
+            ),
           ),
           const SizedBox(height: 16), // Bottom padding
         ],
@@ -223,39 +375,217 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   }
 
   Widget _buildDesktopLayout(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
         children: [
-          Expanded(
-            flex: 2,
-            child: Column(
-              children: [
-                const ModernScoreDisplay(),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    const Expanded(child: ModernBatsmenCard()),
-                    const SizedBox(width: 24),
-                    const Expanded(child: ModernBowlerCard()),
-                  ],
-                ),
-              ],
+          const ModernScoreDisplay(),
+          const SizedBox(height: 24),
+          // Combined Controls Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                width: 1,
+              ),
             ),
-          ),
-          const SizedBox(width: 32),
-          Expanded(
-            flex: 1,
             child: Column(
               children: [
                 const ModernActionButtons(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+                Divider(
+                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                  thickness: 1,
+                ),
+                const SizedBox(height: 20),
                 const ModernScoreButtons(),
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          // Combined Players Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBackground,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(child: ModernBatsmenCard()),
+                const SizedBox(width: 24),
+                Container(
+                  width: 1,
+                  height: 200,
+                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                ),
+                const SizedBox(width: 24),
+                const Expanded(child: ModernBowlerCard()),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16), // Bottom padding
         ],
+      ),
+    );
+  }
+
+  void _showMatchResultDialog(BuildContext context, String result) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardBackground,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.successGreen.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.emoji_events,
+                  color: AppTheme.successGreen,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Match Completed!',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Text(
+                  result,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                '🎉 Congratulations! 🎉',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  context.read<MatchProvider>().resetMatch();
+                  Navigator.of(context).pop(); // Close dialog
+                  Navigator.of(context).pop(); // Go back to home
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.home),
+                label: const Text(
+                  'Go to Home',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showWicketNotification(String wicketInfo) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'WICKET!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    wicketInfo,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.errorRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
       ),
     );
   }
@@ -275,12 +605,17 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
             style: TextStyle(color: AppTheme.textSecondary),
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppTheme.accentBlue),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppTheme.primaryBlue,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -290,6 +625,10 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.errorRed,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
               child: const Text('Reset'),
             ),

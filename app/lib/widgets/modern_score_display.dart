@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
 import '../models/ball_event.dart';
 import '../theme/app_theme.dart';
+import '../screens/scorecard_screen.dart';
 
 class ModernScoreDisplay extends StatelessWidget {
   const ModernScoreDisplay({super.key});
@@ -48,59 +49,108 @@ class ModernScoreDisplay extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Main Score
+              // Header with Score and Scorecard Button
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${innings.totalRuns}',
-                    style: TextStyle(
-                      fontSize: isMobile ? (isSmallScreen ? 48 : 56) : 64,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1,
+                  // Main Score
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '${innings.totalRuns}',
+                          style: TextStyle(
+                            fontSize: isMobile ? (isSmallScreen ? 48 : 56) : 64,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                        ),
+                        Text(
+                          '/',
+                          style: TextStyle(
+                            fontSize: isMobile ? (isSmallScreen ? 36 : 42) : 48,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        Text(
+                          '${innings.wickets}',
+                          style: TextStyle(
+                            fontSize: isMobile ? (isSmallScreen ? 36 : 42) : 48,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: isMobile ? 12 : 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${innings.oversString}/$totalOvers',
+                              style: TextStyle(
+                                fontSize: isMobile
+                                    ? (isSmallScreen ? 16 : 18)
+                                    : 20,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'Overs',
+                              style: TextStyle(
+                                fontSize: isMobile
+                                    ? (isSmallScreen ? 11 : 12)
+                                    : 13,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    '/',
-                    style: TextStyle(
-                      fontSize: isMobile ? (isSmallScreen ? 36 : 42) : 48,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  Text(
-                    '${innings.wickets}',
-                    style: TextStyle(
-                      fontSize: isMobile ? (isSmallScreen ? 36 : 42) : 48,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: isMobile ? 12 : 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${innings.oversString}/$totalOvers',
-                        style: TextStyle(
-                          fontSize: isMobile ? (isSmallScreen ? 16 : 18) : 20,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+                  // View Scorecard Button
+                  SizedBox(
+                    height: isMobile ? (isSmallScreen ? 32 : 36) : 40,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ScorecardScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? (isSmallScreen ? 8 : 10) : 12,
+                          vertical: 0,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      Text(
-                        'Overs',
+                      icon: Icon(
+                        Icons.list_alt,
+                        size: isMobile ? (isSmallScreen ? 14 : 16) : 18,
+                      ),
+                      label: Text(
+                        'Scorecard',
                         style: TextStyle(
                           fontSize: isMobile ? (isSmallScreen ? 11 : 12) : 13,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white70,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -116,36 +166,53 @@ class ModernScoreDisplay extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildStatChip(
-                    'Target',
-                    innings.target > 0 ? innings.target.toString() : '-',
-                    AppTheme.warningOrange,
-                    isMobile,
-                    isSmallScreen,
-                  ),
-                  _buildStatChip(
-                    'CRR',
-                    innings.runRate.toStringAsFixed(2),
-                    AppTheme.accentBlue,
-                    isMobile,
-                    isSmallScreen,
-                  ),
-                  if (innings.target > 0)
+                  if (innings.target > 0) ...[
+                    _buildStatChip(
+                      'Target',
+                      innings.target.toString(),
+                      AppTheme.warningOrange,
+                      isMobile,
+                      isSmallScreen,
+                    ),
+                    _buildStatChip(
+                      'CRR',
+                      innings.runRate.toStringAsFixed(2),
+                      AppTheme.accentBlue,
+                      isMobile,
+                      isSmallScreen,
+                    ),
                     _buildStatChip(
                       'RRR',
-                      innings.requiredRunRate.toStringAsFixed(2),
+                      innings.getRequiredRunRate(totalOvers).toStringAsFixed(2),
                       AppTheme.errorRed,
                       isMobile,
                       isSmallScreen,
-                    )
-                  else
+                    ),
+                  ] else ...[
                     _buildStatChip(
-                      'Players',
-                      '${innings.batsmen.where((b) => !b.isOut).length}',
+                      'CRR',
+                      innings.runRate.toStringAsFixed(2),
+                      AppTheme.accentBlue,
+                      isMobile,
+                      isSmallScreen,
+                    ),
+                    _buildStatChip(
+                      'Projected',
+                      innings.getProjectedTotal(totalOvers).toString(),
                       AppTheme.successGreen,
                       isMobile,
                       isSmallScreen,
                     ),
+                    _buildStatChip(
+                      'This Over',
+                      currentOver != null
+                          ? currentOver.runsScored.toString()
+                          : '0',
+                      AppTheme.primaryBlue,
+                      isMobile,
+                      isSmallScreen,
+                    ),
+                  ],
                 ],
               ),
 
@@ -175,7 +242,7 @@ class ModernScoreDisplay extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Column(

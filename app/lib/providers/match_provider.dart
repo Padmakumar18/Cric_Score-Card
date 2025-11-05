@@ -11,16 +11,25 @@ class MatchProvider extends ChangeNotifier {
   Match? _currentMatch;
   final List<BallEvent> _ballHistory = [];
   final List<Match> _matchStateHistory = [];
+  String? _lastWicketInfo;
 
   Match? get currentMatch => _currentMatch;
   List<BallEvent> get ballHistory => _ballHistory;
   bool get canUndo => _matchStateHistory.isNotEmpty;
+  String? get lastWicketInfo => _lastWicketInfo;
+
+  /// Clear last wicket info
+  void clearLastWicketInfo() {
+    _lastWicketInfo = null;
+    notifyListeners();
+  }
 
   /// Create a new match
   void createMatch({
     required String team1,
     required String team2,
     required int oversPerInnings,
+    required int totalPlayers,
     required String tossWinner,
     required String tossDecision,
   }) {
@@ -28,6 +37,7 @@ class MatchProvider extends ChangeNotifier {
       team1: team1,
       team2: team2,
       oversPerInnings: oversPerInnings,
+      totalPlayers: totalPlayers,
       tossWinner: tossWinner,
       tossDecision: tossDecision,
     );
@@ -109,6 +119,14 @@ class MatchProvider extends ChangeNotifier {
 
       _ballHistory.add(ballEvent);
       _updateInningsWithBall(ballEvent);
+
+      // Set last wicket info if it's a wicket
+      if (isWicket && wicketType != null) {
+        final batsmanName =
+            _currentMatch?.currentInnings?.strikerBatsman?.name ?? 'Batsman';
+        _lastWicketInfo = '$batsmanName - $wicketType';
+      }
+
       notifyListeners();
     } catch (e) {
       debugPrint('MatchProvider: Error adding ball event: $e');
@@ -138,12 +156,17 @@ class MatchProvider extends ChangeNotifier {
     // Update batsman stats
     final updatedBatsmen = currentInnings.batsmen.map((batsman) {
       if (batsman.name == strikerBatsman.name) {
-        return batsman.addRuns(
+        var updatedBatsman = batsman.addRuns(
           ball.runs,
           ball.runs == 4,
           ball.runs == 6,
           ball.countsTowardsOver || ball.isNoBall,
         );
+        // Mark batsman as out if wicket
+        if (ball.isWicket) {
+          updatedBatsman = updatedBatsman.markOut(ball.wicketType ?? 'out');
+        }
+        return updatedBatsman;
       }
       return batsman;
     }).toList();
@@ -238,6 +261,9 @@ class MatchProvider extends ChangeNotifier {
     final currentInnings = _currentMatch!.currentInnings!;
     final maxOvers = _currentMatch!.oversPerInnings;
     final maxBalls = maxOvers * 6;
+    final maxWickets =
+        _currentMatch!.totalPlayers -
+        1; // All out when (totalPlayers - 1) wickets fall
 
     bool shouldComplete = false;
     String? result;
@@ -245,13 +271,13 @@ class MatchProvider extends ChangeNotifier {
     // Check completion conditions
     if (currentInnings.ballsBowled >= maxBalls) {
       shouldComplete = true;
-    } else if (currentInnings.wickets >= 10) {
+    } else if (currentInnings.wickets >= maxWickets) {
       shouldComplete = true;
     } else if (currentInnings.target > 0 &&
         currentInnings.totalRuns >= currentInnings.target) {
       shouldComplete = true;
       result =
-          '${currentInnings.battingTeam} won by ${10 - currentInnings.wickets} wickets';
+          '${currentInnings.battingTeam} won by ${maxWickets - currentInnings.wickets} wickets';
     }
 
     if (shouldComplete) {
@@ -266,7 +292,7 @@ class MatchProvider extends ChangeNotifier {
           final secondInningsRuns = currentInnings.totalRuns;
           if (secondInningsRuns > firstInningsRuns) {
             result =
-                '${currentInnings.battingTeam} won by ${10 - currentInnings.wickets} wickets';
+                '${currentInnings.battingTeam} won by ${maxWickets - currentInnings.wickets} wickets';
           } else if (firstInningsRuns > secondInningsRuns) {
             result =
                 '${_currentMatch!.firstInnings!.battingTeam} won by ${firstInningsRuns - secondInningsRuns} runs';
@@ -372,7 +398,15 @@ class MatchProvider extends ChangeNotifier {
     if (currentInnings == null) return false;
 
     final activeBatsmen = currentInnings.batsmen.where((b) => !b.isOut).length;
-    return activeBatsmen < 2 && currentInnings.wickets < 10;
+    final maxWickets = _currentMatch!.totalPlayers - 1;
+
+    // Need new batsman only if:
+    // 1. Less than 2 active batsmen
+    // 2. Haven't reached maximum wickets
+    // 3. Innings is not complete
+    return activeBatsmen < 2 &&
+        currentInnings.wickets < maxWickets &&
+        !currentInnings.isComplete;
   }
 
   /// Add new batsman to current innings
@@ -388,12 +422,37 @@ class MatchProvider extends ChangeNotifier {
         return;
       }
 
+      // Check if batsman with this name already exists
+      final existingBatsman = currentInnings.batsmen
+          .where((b) => b.name.toLowerCase() == name.toLowerCase())
+          .toList();
+
+      if (existingBatsman.isNotEmpty) {
+        debugPrint('MatchProvider: Batsman with name "$name" already exists');
+        return;
+      }
+
+      // Check if we already have 2 active batsmen (shouldn't happen, but safeguard)
+      final activeBatsmen = currentInnings.batsmen
+          .where((b) => !b.isOut)
+          .length;
+      if (activeBatsmen >= 2) {
+        debugPrint(
+          'MatchProvider: Already have 2 active batsmen, cannot add more',
+        );
+        return;
+      }
+
       // Ensure the new batsman comes in as non-striker if there's already a striker
       final hasStriker = currentInnings.batsmen.any(
         (b) => b.isOnStrike && !b.isOut,
       );
       final newBatsman = Batsman(name: name, isOnStrike: !hasStriker);
       final updatedBatsmen = [...currentInnings.batsmen, newBatsman];
+
+      debugPrint(
+        'MatchProvider: Adding new batsman "$name" (total batsmen: ${updatedBatsmen.length})',
+      );
 
       final updatedInnings = currentInnings.copyWith(batsmen: updatedBatsmen);
 

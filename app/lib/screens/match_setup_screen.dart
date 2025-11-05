@@ -23,6 +23,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   );
 
   int _oversPerInnings = AppConstants.defaultOversPerInnings;
+  int _totalPlayers = 11;
   String _tossWinner = AppConstants.defaultTeam1;
   String _tossDecision = AppConstants.tossDecisionBat;
 
@@ -52,6 +53,11 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
               _buildSectionTitle('Match Format'),
               const SizedBox(height: 16),
               _buildMatchFormat(),
+
+              const SizedBox(height: 32),
+              _buildSectionTitle('Team Size'),
+              const SizedBox(height: 16),
+              _buildTeamSize(),
 
               const SizedBox(height: 32),
               _buildSectionTitle('Toss Details'),
@@ -165,6 +171,70 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
                 if (enteredValue != null && enteredValue > 0) {
                   setState(() {
                     _oversPerInnings = enteredValue;
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTeamSize() {
+    final playersController = TextEditingController(
+      text: _totalPlayers.toString(),
+    );
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Total Players per Team',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+
+            // Predefined Players Options
+            Wrap(
+              spacing: 8,
+              children: [5, 7, 9, 11].map((players) {
+                return ChoiceChip(
+                  label: Text('$players players'),
+                  selected: _totalPlayers == players,
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() {
+                        _totalPlayers = players;
+                        playersController.text = players.toString();
+                      });
+                    }
+                  },
+                );
+              }).toList(),
+            ),
+
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: playersController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Enter custom number of players',
+                border: OutlineInputBorder(),
+                suffixIcon: Icon(Icons.people),
+                helperText: 'Innings ends when (players - 1) wickets fall',
+              ),
+              onChanged: (value) {
+                final enteredValue = int.tryParse(value);
+                if (enteredValue != null &&
+                    enteredValue > 1 &&
+                    enteredValue <= 11) {
+                  setState(() {
+                    _totalPlayers = enteredValue;
                   });
                 }
               },
@@ -298,6 +368,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
       team1: team1,
       team2: team2,
       oversPerInnings: _oversPerInnings,
+      totalPlayers: _totalPlayers,
       tossWinner: _tossWinner,
       tossDecision: _tossDecision,
     );

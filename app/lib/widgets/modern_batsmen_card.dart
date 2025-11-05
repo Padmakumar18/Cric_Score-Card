@@ -21,17 +21,8 @@ class ModernBatsmenCard extends StatelessWidget {
 
         final currentBatsmen = innings.currentBatsmen;
 
-        return Container(
+        return SizedBox(
           width: double.infinity,
-          padding: EdgeInsets.all(isMobile ? (isSmallScreen ? 12 : 16) : 20),
-          decoration: BoxDecoration(
-            color: AppTheme.cardBackground,
-            borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
-            border: Border.all(
-              color: AppTheme.accentBlue.withValues(alpha: 0.3),
-              width: 1,
-            ),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -134,7 +125,7 @@ class ModernBatsmenCard extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      flex: 1,
+                      flex: 2,
                       child: Text(
                         'SR',
                         textAlign: TextAlign.center,
@@ -195,19 +186,36 @@ class ModernBatsmenCard extends StatelessWidget {
                                 ),
                               ),
                             Expanded(
-                              child: Text(
-                                batsman.name.length > (isMobile ? 10 : 12)
-                                    ? '${batsman.name.substring(0, isMobile ? 10 : 12)}...'
-                                    : batsman.name,
-                                style: TextStyle(
-                                  color: AppTheme.textPrimary,
-                                  fontWeight: batsman.isOnStrike
-                                      ? FontWeight.bold
-                                      : FontWeight.w500,
-                                  fontSize: isMobile
-                                      ? (isSmallScreen ? 12 : 13)
-                                      : 14,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    batsman.name.length > (isMobile ? 10 : 12)
+                                        ? '${batsman.name.substring(0, isMobile ? 10 : 12)}...'
+                                        : batsman.name,
+                                    style: TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontWeight: batsman.isOnStrike
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
+                                      fontSize: isMobile
+                                          ? (isSmallScreen ? 12 : 13)
+                                          : 14,
+                                    ),
+                                  ),
+                                  if (batsman.isOut &&
+                                      batsman.dismissalType != null)
+                                    Text(
+                                      batsman.dismissalType!,
+                                      style: TextStyle(
+                                        color: AppTheme.errorRed,
+                                        fontSize: isMobile
+                                            ? (isSmallScreen ? 9 : 10)
+                                            : 11,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                           ],
@@ -259,7 +267,7 @@ class ModernBatsmenCard extends StatelessWidget {
                         ),
                       ),
                       Expanded(
-                        flex: 1,
+                        flex: 2,
                         child: Text(
                           batsman.strikeRate.toStringAsFixed(0),
                           textAlign: TextAlign.center,

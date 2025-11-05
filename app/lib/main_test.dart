@@ -59,6 +59,7 @@ class _TestScoreboardScreenState extends State<TestScoreboardScreen> {
         team1: 'Mumbai Indians',
         team2: 'Chennai Super Kings',
         oversPerInnings: 20,
+        totalPlayers: 11,
         tossWinner: 'Mumbai Indians',
         tossDecision: 'bat',
       );
