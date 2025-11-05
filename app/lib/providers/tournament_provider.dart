@@ -172,4 +172,13 @@ class TournamentProvider extends ChangeNotifier {
     _currentTournament = _tournaments.firstWhere((t) => t.id == tournamentId);
     notifyListeners();
   }
+
+  void deleteTournament(String tournamentId) {
+    _tournaments.removeWhere((t) => t.id == tournamentId);
+    if (_currentTournament?.id == tournamentId) {
+      _currentTournament = null;
+      _currentTournamentMatchId = null;
+    }
+    notifyListeners();
+  }
 }

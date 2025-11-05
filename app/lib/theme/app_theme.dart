@@ -66,12 +66,10 @@ class AppTheme {
         secondary: darkSecondary,
         tertiary: darkAccent,
         surface: darkSurface,
-        background: darkBackground,
         error: errorRed,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: darkTextPrimary,
-        onBackground: darkTextPrimary,
       ),
       textTheme: GoogleFonts.interTextTheme().copyWith(
         headlineLarge: GoogleFonts.inter(
@@ -193,12 +191,10 @@ class AppTheme {
         secondary: lightSecondary,
         tertiary: lightAccent,
         surface: lightSurface,
-        background: lightBackground,
         error: errorRed,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: lightTextPrimary,
-        onBackground: lightTextPrimary,
       ),
       textTheme: GoogleFonts.interTextTheme().copyWith(
         headlineLarge: GoogleFonts.inter(

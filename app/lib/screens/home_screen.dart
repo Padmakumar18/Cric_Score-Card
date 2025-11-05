@@ -84,19 +84,19 @@ class HomeScreen extends StatelessWidget {
                     final cards = <Widget>[
                       _buildActionCard(
                         context,
-                        title: 'Create Tournament',
-                        subtitle: 'Multi-team tournament with fixtures',
-                        icon: Icons.emoji_events,
-                        color: AppTheme.successGreen,
-                        onTap: () => _navigateToTournamentCreate(context),
-                      ),
-                      _buildActionCard(
-                        context,
                         title: 'Quick Match',
                         subtitle: '2 teams • Single match',
                         icon: Icons.sports_cricket,
                         color: AppTheme.primaryGreen,
                         onTap: () => _navigateToMatchSetup(context),
+                      ),
+                      _buildActionCard(
+                        context,
+                        title: 'Create Tournament',
+                        subtitle: 'Multi-team tournament with fixtures',
+                        icon: Icons.emoji_events,
+                        color: AppTheme.successGreen,
+                        onTap: () => _navigateToTournamentCreate(context),
                       ),
                     ];
 

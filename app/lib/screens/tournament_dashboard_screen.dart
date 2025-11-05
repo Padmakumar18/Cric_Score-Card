@@ -29,6 +29,15 @@ class TournamentDashboardScreen extends StatelessWidget {
               );
             },
           ),
+          Consumer<TournamentProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Delete Tournament',
+                onPressed: () => _showDeleteConfirmation(context, provider),
+              );
+            },
+          ),
         ],
       ),
       body: Consumer<TournamentProvider>(
@@ -493,6 +502,45 @@ class TournamentDashboardScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    TournamentProvider provider,
+  ) {
+    final tournament = provider.currentTournament;
+    if (tournament == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Tournament'),
+        content: Text(
+          'Are you sure you want to delete "${tournament.name}"?\n\nThis will permanently remove all matches, fixtures, and standings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              provider.deleteTournament(tournament.id);
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop(); // Go back to home
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Tournament "${tournament.name}" deleted'),
+                  backgroundColor: AppTheme.successGreen,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }
