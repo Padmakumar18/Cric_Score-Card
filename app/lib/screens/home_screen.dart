@@ -18,7 +18,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cricket Scoreboard'),
+        title: const Text('Crick Stream'),
         centerTitle: true,
         actions: [
           Consumer<ThemeProvider>(
@@ -68,8 +68,8 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Welcome section
-              _buildWelcomeSection(context),
-              const SizedBox(height: 32),
+              // _buildWelcomeSection(context),
+              // const SizedBox(height: 32),
 
               // Current match status
               if (matchProvider.currentMatch != null) ...[
@@ -265,7 +265,11 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: Theme.of(context).textTheme.bodySmall,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

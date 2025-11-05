@@ -521,9 +521,10 @@ class ModernActionButtons extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.cardBackground,
-        title: const Text(
-          'Run Out',
-          style: TextStyle(color: AppTheme.textPrimary),
+        contentPadding: const EdgeInsets.all(24),
+        title: const Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text('Run Out', style: TextStyle(color: AppTheme.textPrimary)),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -532,23 +533,42 @@ class ModernActionButtons extends StatelessWidget {
               'How many runs before run out?',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              alignment: WrapAlignment.center,
               children: [0, 1, 2, 3]
                   .map(
-                    (runs) => ElevatedButton(
-                      onPressed: () {
-                        provider.addBallEvent(
-                          runs: runs,
-                          isWicket: true,
-                          wicketType: 'Run Out',
-                        );
-                        Navigator.of(context).pop();
-                        // Show new batsman dialog
-                        PlayerDialogs.showNewBatsmanDialog(context, provider);
-                      },
-                      child: Text(runs.toString()),
+                    (runs) => SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          provider.addBallEvent(
+                            runs: runs,
+                            isWicket: true,
+                            wicketType: 'Run Out',
+                          );
+                          Navigator.of(context).pop();
+                          // Show new batsman dialog
+                          PlayerDialogs.showNewBatsmanDialog(context, provider);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.wicketColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          runs.toString(),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   )
                   .toList(),
