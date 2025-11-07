@@ -6,16 +6,19 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:cricket_scoreboard/main.dart';
+import 'package:cricket_scoreboard/providers/auth_provider.dart';
 
 void main() {
   testWidgets('Cricket Scoreboard app smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const CricketScoreboardApp());
+    // Create auth provider for testing
+    final authProvider = AuthProvider();
+    await authProvider.init();
 
-    // Verify that our app starts with the home screen
-    expect(find.text('Welcome to Cricket Scoreboard'), findsOneWidget);
-    expect(find.text('New Match'), findsOneWidget);
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(CricketScoreboardApp(authProvider: authProvider));
+
+    // Verify that our app starts with the auth screen
+    expect(find.text('Cricket Scoreboard'), findsOneWidget);
   });
 }

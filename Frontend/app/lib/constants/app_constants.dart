@@ -1,5 +1,8 @@
 /// Application constants and configuration
 class AppConstants {
+  // API Configuration
+  static const String apiBaseUrl = 'http://localhost:8000';
+
   // Match configuration
   static const int defaultOversPerInnings = 20;
   static const int maxPlayersPerTeam = 11;

@@ -25,14 +25,16 @@ from datetime import datetime
 from app.config.settings import settings
 from app.config.database import engine, Base
 
-# Import routers (will be created in later tasks)
-# from app.routers import auth, profiles, matches, tournaments, players, statistics
+# Import routers
+from app.routers import auth
+# from app.routers import profiles, matches, tournaments, players, statistics
 
 # Create uploads directory if it doesn't exist
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Note: Database tables should be created using Alembic migrations
+# Run: alembic upgrade head
+# Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -124,8 +126,8 @@ async def root():
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
-# Include routers (will be uncommented as they are created)
-# app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+# Include routers
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 # app.include_router(profiles.router, prefix="/api/profiles", tags=["Profiles"])
 # app.include_router(matches.router, prefix="/api/matches", tags=["Matches"])
 # app.include_router(tournaments.router, prefix="/api/tournaments", tags=["Tournaments"])

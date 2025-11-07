@@ -14,17 +14,23 @@ void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const CricketScoreboardApp());
+  // Initialize auth provider
+  final authProvider = AuthProvider();
+  await authProvider.init();
+
+  runApp(CricketScoreboardApp(authProvider: authProvider));
 }
 
 class CricketScoreboardApp extends StatelessWidget {
-  const CricketScoreboardApp({super.key});
+  final AuthProvider authProvider;
+
+  const CricketScoreboardApp({super.key, required this.authProvider});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => MatchProvider()),
         ChangeNotifierProvider(create: (_) => TournamentProvider()),

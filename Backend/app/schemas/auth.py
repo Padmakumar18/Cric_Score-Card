@@ -7,10 +7,9 @@ Pydantic models for authentication requests and responses.
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
-from uuid import UUID
 
 
-class UserCreate(BaseModel):
+class SignupRequest(BaseModel):
     """Schema for user registration."""
     email: EmailStr
     password: str = Field(
@@ -18,7 +17,7 @@ class UserCreate(BaseModel):
     name: str = Field(min_length=1, description="User's full name")
 
 
-class UserLogin(BaseModel):
+class LoginRequest(BaseModel):
     """Schema for user login."""
     email: EmailStr
     password: str
@@ -26,7 +25,7 @@ class UserLogin(BaseModel):
 
 class UserResponse(BaseModel):
     """Schema for user response."""
-    id: UUID
+    id: str
     email: str
     name: str
     is_guest: bool
@@ -37,11 +36,14 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-class TokenResponse(BaseModel):
-    """Schema for token response."""
+class AuthResponse(BaseModel):
+    """Schema for authentication response with token."""
+    id: str
+    email: str
+    name: str
+    is_guest: bool
     access_token: str
     token_type: str = "bearer"
-    user: UserResponse
 
 
 class TokenData(BaseModel):

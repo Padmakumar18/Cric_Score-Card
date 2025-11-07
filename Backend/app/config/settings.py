@@ -4,8 +4,9 @@ Application Settings and Configuration
 Loads environment variables and provides application-wide settings.
 """
 
-from pydantic_settings import BaseSettings
-from typing import List
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from typing import List, Union
 import os
 
 
@@ -39,16 +40,26 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 5242880  # 5MB in bytes
     ALLOWED_EXTENSIONS: List[str] = ["jpg", "jpeg", "png"]
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True
+    )
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # Parse CORS_ORIGINS if it's a string
-        if isinstance(self.CORS_ORIGINS, str):
-            self.CORS_ORIGINS = [origin.strip()
-                                 for origin in self.CORS_ORIGINS.split(",")]
+    @field_validator('CORS_ORIGINS', mode='before')
+    @classmethod
+    def parse_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        """Parse CORS_ORIGINS from comma-separated string or list."""
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",")]
+        return v
+
+    @field_validator('ALLOWED_EXTENSIONS', mode='before')
+    @classmethod
+    def parse_allowed_extensions(cls, v: Union[str, List[str]]) -> List[str]:
+        """Parse ALLOWED_EXTENSIONS from comma-separated string or list."""
+        if isinstance(v, str):
+            return [ext.strip() for ext in v.split(",")]
+        return v
 
 
 # Create global settings instance
