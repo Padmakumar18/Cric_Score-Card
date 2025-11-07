@@ -544,4 +544,9 @@ class MatchProvider extends ChangeNotifier {
     _matchStateHistory.clear();
     notifyListeners();
   }
+
+  /// Clear current match (alias for resetMatch)
+  void clearMatch() {
+    resetMatch();
+  }
 }

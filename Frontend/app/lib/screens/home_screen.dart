@@ -3,11 +3,15 @@ import 'package:provider/provider.dart';
 import '../providers/match_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/tournament_provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'match_setup_screen.dart';
 import 'scoreboard_screen.dart';
 import 'tournament_create_screen.dart';
 import 'tournament_dashboard_screen.dart';
+import 'settings_screen.dart';
+import 'user_profile_screen.dart';
+import 'auth_screen.dart';
 import '../widgets/responsive_layout.dart';
 
 /// Home screen with navigation to different app sections
@@ -18,7 +22,21 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crick Stream'),
+        title: Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Cricket Scoreboard'),
+                if (authProvider.isGuest)
+                  Text(
+                    'Guest Mode',
+                    style: TextStyle(fontSize: 12, color: Colors.white70),
+                  ),
+              ],
+            );
+          },
+        ),
         centerTitle: true,
         actions: [
           Consumer<ThemeProvider>(
@@ -32,6 +50,41 @@ class HomeScreen extends StatelessWidget {
                     : 'Switch to Dark Mode',
                 onPressed: () {
                   themeProvider.toggleTheme();
+                },
+              );
+            },
+          ),
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, child) {
+              return PopupMenuButton<String>(
+                icon: const Icon(Icons.account_circle),
+                itemBuilder: (context) => <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(
+                    value: 'user',
+                    enabled: false,
+                    child: Text(authProvider.currentUser?.name ?? 'User'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout),
+                        SizedBox(width: 8),
+                        Text('Logout'),
+                      ],
+                    ),
+                  ),
+                ],
+                onSelected: (value) {
+                  if (value == 'logout') {
+                    authProvider.logout();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const AuthScreen(),
+                      ),
+                    );
+                  }
                 },
               );
             },
@@ -129,11 +182,22 @@ class HomeScreen extends StatelessWidget {
                     cards.add(
                       _buildActionCard(
                         context,
+                        title: 'My Profile',
+                        subtitle: 'Personal details & preferences',
+                        icon: Icons.person,
+                        color: AppTheme.infoBlue,
+                        onTap: () => _navigateToUserProfile(context),
+                      ),
+                    );
+
+                    cards.add(
+                      _buildActionCard(
+                        context,
                         title: 'Settings',
                         subtitle: 'App preferences',
                         icon: Icons.settings,
                         color: AppTheme.darkBrown,
-                        onTap: () => _showComingSoon(context),
+                        onTap: () => _navigateToSettings(context),
                       ),
                     );
 
@@ -151,28 +215,6 @@ class HomeScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildWelcomeSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Welcome to Cricket Scoreboard',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: AppTheme.primaryGreen,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Manage your cricket matches with professional scoring',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
-        ),
-      ],
     );
   }
 
@@ -306,12 +348,14 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _navigateToTournamentCreate(BuildContext context) {
+    if (!_checkAuth(context, 'tournament')) return;
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const TournamentCreateScreen()),
     );
   }
 
   void _navigateToTournamentDashboard(BuildContext context) {
+    if (!_checkAuth(context, 'tournament')) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const TournamentDashboardScreen(),
@@ -319,11 +363,52 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Coming soon!'),
-        duration: Duration(seconds: 2),
+  void _navigateToSettings(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const SettingsScreen()));
+  }
+
+  void _navigateToUserProfile(BuildContext context) {
+    if (!_checkAuth(context, 'profile')) return;
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const UserProfileScreen()));
+  }
+
+  bool _checkAuth(BuildContext context, String feature) {
+    final authProvider = context.read<AuthProvider>();
+    if (authProvider.isGuest) {
+      _showAuthRequiredDialog(context);
+      return false;
+    }
+    return true;
+  }
+
+  void _showAuthRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Login Required'),
+        content: const Text(
+          'This feature is only available for registered users. Please create an account or login to continue.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<AuthProvider>().logout();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const AuthScreen()),
+              );
+            },
+            child: const Text('Login / Sign Up'),
+          ),
+        ],
       ),
     );
   }

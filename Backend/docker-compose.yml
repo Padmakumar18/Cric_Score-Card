@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: cricket_db
+    environment:
+      POSTGRES_USER: cricket_user
+      POSTGRES_PASSWORD: cricket_password
+      POSTGRES_DB: cricket_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cricket_user -d cricket_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build: .
+    container_name: cricket_backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://cricket_user:cricket_password@db:5432/cricket_db
+      JWT_SECRET_KEY: your-super-secret-jwt-key-change-this-in-production-min-32-chars
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8080,http://localhost:5000
+      UPLOAD_DIR: ./uploads
+      MAX_FILE_SIZE: 5242880
+      DEBUG: "True"
+    volumes:
+      - .:/app
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  uploads_data:

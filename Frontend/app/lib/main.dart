@@ -4,7 +4,11 @@ import 'theme/app_theme.dart';
 import 'providers/match_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/tournament_provider.dart';
+import 'providers/player_profile_provider.dart';
+import 'providers/user_profile_provider.dart';
+import 'providers/auth_provider.dart';
 import 'screens/home_screen.dart';
+import 'screens/auth_screen.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -20,18 +24,23 @@ class CricketScoreboardApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => MatchProvider()),
         ChangeNotifierProvider(create: (_) => TournamentProvider()),
+        ChangeNotifierProvider(create: (_) => PlayerProfileProvider()),
+        ChangeNotifierProvider(create: (_) => UserProfileProvider()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+      child: Consumer2<ThemeProvider, AuthProvider>(
+        builder: (context, themeProvider, authProvider, child) {
           return MaterialApp(
-            title: 'Crick Stream',
+            title: 'Cricket Scoreboard',
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
-            home: const HomeScreen(),
+            home: authProvider.isAuthenticated
+                ? const HomeScreen()
+                : const AuthScreen(),
             debugShowCheckedModeBanner: false,
           );
         },
