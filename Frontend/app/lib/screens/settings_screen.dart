@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/match_provider.dart';
 import '../providers/tournament_provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import 'user_profile_screen.dart';
+import 'auth_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -12,18 +15,84 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildThemeSection(context),
-          const SizedBox(height: 24),
-          _buildMatchSettingsSection(context),
-          const SizedBox(height: 24),
-          _buildDataSection(context),
-          const SizedBox(height: 24),
-          _buildAboutSection(context),
-        ],
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView(
+            padding: EdgeInsets.all(
+              MediaQuery.of(context).size.width > 600 ? 24.0 : 16.0,
+            ),
+            children: [
+              _buildProfileSection(context),
+              const SizedBox(height: 24),
+              _buildThemeSection(context),
+              const SizedBox(height: 24),
+              _buildMatchSettingsSection(context),
+              const SizedBox(height: 24),
+              _buildDataSection(context),
+              const SizedBox(height: 24),
+              _buildAboutSection(context),
+              const SizedBox(height: 24),
+              _buildLogoutSection(context),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildProfileSection(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.person, color: AppTheme.infoBlue, size: 24),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Profile',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppTheme.primaryGreen,
+                    child: Text(
+                      authProvider.currentUser?.name
+                              .substring(0, 1)
+                              .toUpperCase() ??
+                          'U',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  title: Text(authProvider.currentUser?.name ?? 'User'),
+                  subtitle: Text(
+                    authProvider.isGuest
+                        ? 'Guest User'
+                        : authProvider.currentUser?.email ?? '',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: authProvider.isGuest
+                      ? () => _showAuthRequiredDialog(context)
+                      : () => _navigateToProfile(context),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -315,6 +384,86 @@ class SettingsScreen extends StatelessWidget {
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
             child: const Text('Clear All'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutSection(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: AppTheme.errorRed),
+              title: const Text('Logout'),
+              subtitle: const Text('Sign out of your account'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showLogoutDialog(context, authProvider),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _navigateToProfile(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const UserProfileScreen()));
+  }
+
+  void _showAuthRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Login Required'),
+        content: const Text(
+          'This feature is only available for registered users. Please create an account or login to continue.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<AuthProvider>().logout();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const AuthScreen()),
+              );
+            },
+            child: const Text('Login / Sign Up'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context, AuthProvider authProvider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              authProvider.logout();
+              Navigator.of(context).pop();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const AuthScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
+            child: const Text('Logout'),
           ),
         ],
       ),

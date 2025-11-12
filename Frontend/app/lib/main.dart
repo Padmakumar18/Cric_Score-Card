@@ -7,7 +7,7 @@ import 'providers/tournament_provider.dart';
 import 'providers/player_profile_provider.dart';
 import 'providers/user_profile_provider.dart';
 import 'providers/auth_provider.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_navigation_screen.dart';
 import 'screens/auth_screen.dart';
 
 void main() async {
@@ -45,7 +45,7 @@ class CricketScoreboardApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             home: authProvider.isAuthenticated
-                ? const HomeScreen()
+                ? const MainNavigationScreen()
                 : const AuthScreen(),
             debugShowCheckedModeBanner: false,
           );

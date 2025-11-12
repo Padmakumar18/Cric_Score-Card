@@ -1,1 +1,0 @@
-# Cricket Scoreboard Backend API

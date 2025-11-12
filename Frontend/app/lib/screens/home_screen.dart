@@ -6,6 +6,7 @@ import '../providers/tournament_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'match_setup_screen.dart';
+import 'match_post_form_screen.dart';
 import 'scoreboard_screen.dart';
 import 'tournament_create_screen.dart';
 import 'tournament_dashboard_screen.dart';
@@ -142,6 +143,14 @@ class HomeScreen extends StatelessWidget {
                         icon: Icons.sports_cricket,
                         color: AppTheme.primaryGreen,
                         onTap: () => _navigateToMatchSetup(context),
+                      ),
+                      _buildActionCard(
+                        context,
+                        title: 'Post Match',
+                        subtitle: 'Find teams to play with',
+                        icon: Icons.post_add,
+                        color: AppTheme.accentSaffron,
+                        onTap: () => _navigateToPostMatch(context),
                       ),
                       _buildActionCard(
                         context,
@@ -381,6 +390,13 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => const UserProfileScreen()));
+  }
+
+  void _navigateToPostMatch(BuildContext context) {
+    if (!_checkAuth(context, 'match posting')) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const MatchPostFormScreen()),
+    );
   }
 
   bool _checkAuth(BuildContext context, String feature) {
