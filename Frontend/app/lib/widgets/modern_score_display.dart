@@ -25,6 +25,7 @@ class ModernScoreDisplay extends StatelessWidget {
         }
 
         final totalOvers = match.oversPerInnings;
+        // Always show current over section, but with empty balls if complete
         final currentOver = innings.overs.isNotEmpty
             ? innings.overs.last
             : null;
@@ -205,9 +206,9 @@ class ModernScoreDisplay extends StatelessWidget {
                     ),
                     _buildStatChip(
                       'This Over',
-                      currentOver != null
+                      currentOver != null && !currentOver.isComplete
                           ? currentOver.runsScored.toString()
-                          : '0',
+                          : '-',
                       AppTheme.primaryBlue,
                       isMobile,
                       isSmallScreen,
@@ -331,8 +332,10 @@ class ModernScoreDisplay extends StatelessWidget {
     bool isMobile,
     bool isSmallScreen,
   ) {
-    final balls = currentOver.balls;
-    final validBalls = currentOver.validBalls;
+    // If over is complete, show 6 empty balls
+    final isOverComplete = currentOver.isComplete;
+    final balls = isOverComplete ? [] : currentOver.balls;
+    final validBalls = isOverComplete ? 0 : currentOver.validBalls;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

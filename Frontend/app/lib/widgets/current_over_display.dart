@@ -22,9 +22,13 @@ class CurrentOverDisplay extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final currentOver = innings.overs.last;
-        final balls = currentOver.balls;
-        final validBalls = currentOver.validBalls;
+        final lastOver = innings.overs.last;
+        final currentOver = lastOver;
+
+        // If over is complete, show 6 empty balls, otherwise show actual balls
+        final isOverComplete = lastOver.isComplete;
+        final balls = isOverComplete ? <BallEvent>[] : currentOver.balls;
+        final validBalls = isOverComplete ? 0 : currentOver.validBalls;
 
         return Container(
           width: double.infinity,

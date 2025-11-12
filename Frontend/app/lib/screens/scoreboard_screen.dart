@@ -24,7 +24,6 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   int _lastCheckedBalls = -1;
   int _lastCheckedWickets = -1;
   bool _hasShownResultDialog = false;
-  String? _lastShownWicket;
 
   @override
   void initState() {
@@ -40,16 +39,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
     if (match == null) return;
 
-    // Check for wicket notification
-    if (provider.lastWicketInfo != null &&
-        provider.lastWicketInfo != _lastShownWicket) {
-      _lastShownWicket = provider.lastWicketInfo;
-      _showWicketNotification(provider.lastWicketInfo!);
-      // Clear the wicket info after showing
-      Future.delayed(const Duration(milliseconds: 100), () {
-        provider.clearLastWicketInfo();
-      });
-    }
+    // Wicket notification removed - no popup from bottom
 
     // Check if match is completed and show result dialog (highest priority)
     if (match.status == AppConstants.statusCompleted &&
@@ -532,61 +522,6 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
           ],
         );
       },
-    );
-  }
-
-  void _showWicketNotification(String wicketInfo) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.close, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'WICKET!',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    wicketInfo,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppTheme.errorRed,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'OK',
-          textColor: Colors.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-      ),
     );
   }
 

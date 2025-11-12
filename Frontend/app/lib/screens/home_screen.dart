@@ -265,6 +265,13 @@ class HomeScreen extends StatelessWidget {
                   backgroundColor: _getStatusColor(match.status),
                 ),
                 const Spacer(),
+                IconButton(
+                  onPressed: () =>
+                      _showDeleteMatchDialog(context, matchProvider),
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Delete Match',
+                  color: AppTheme.wicketColor,
+                ),
                 TextButton.icon(
                   onPressed: () => _navigateToScoreboard(context),
                   icon: const Icon(Icons.arrow_forward),
@@ -407,6 +414,46 @@ class HomeScreen extends StatelessWidget {
               );
             },
             child: const Text('Login / Sign Up'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteMatchDialog(
+    BuildContext context,
+    MatchProvider matchProvider,
+  ) {
+    final match = matchProvider.currentMatch;
+    if (match == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Match'),
+        content: Text(
+          'Are you sure you want to delete the match between ${match.team1} and ${match.team2}?\n\nThis action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              matchProvider.clearMatch();
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Match deleted successfully'),
+                  backgroundColor: AppTheme.successGreen,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.wicketColor,
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),

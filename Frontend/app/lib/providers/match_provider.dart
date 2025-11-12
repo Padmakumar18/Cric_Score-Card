@@ -199,9 +199,26 @@ class MatchProvider extends ChangeNotifier {
         ? currentInnings.extras + 1
         : currentInnings.extras;
 
+    // Check if over is completed after this ball
+    final isOverCompleted =
+        ball.countsTowardsOver &&
+        (newBallsBowled % 6 == 0) &&
+        newBallsBowled > 0;
+
+    // Swap batsmen if over is completed
+    var finalBatsmen = updatedBatsmen;
+    if (isOverCompleted) {
+      finalBatsmen = updatedBatsmen.map((batsman) {
+        if (!batsman.isOut) {
+          return batsman.copyWith(isOnStrike: !batsman.isOnStrike);
+        }
+        return batsman;
+      }).toList();
+    }
+
     // Update innings
     final updatedInnings = currentInnings.copyWith(
-      batsmen: updatedBatsmen,
+      batsmen: finalBatsmen,
       bowlers: updatedBowlers,
       overs: updatedOvers,
       totalRuns: newTotalRuns,

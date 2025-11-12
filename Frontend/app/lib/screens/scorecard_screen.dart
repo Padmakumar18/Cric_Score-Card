@@ -219,7 +219,11 @@ class ScorecardScreen extends StatelessWidget {
     BuildContext context,
     bool isMobile,
   ) {
-    final currentOver = innings.overs.isNotEmpty ? innings.overs.last : null;
+    // Only show current over runs if the over is incomplete
+    final currentOver =
+        innings.overs.isNotEmpty && !innings.overs.last.isComplete
+        ? innings.overs.last
+        : null;
     final currentOverRuns = currentOver?.runsScored ?? 0;
 
     return Container(
@@ -341,7 +345,13 @@ class ScorecardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 // Stats Row
-                _buildStatsRow(innings, currentOverRuns, totalOvers, isMobile),
+                _buildStatsRow(
+                  innings,
+                  currentOver,
+                  currentOverRuns,
+                  totalOvers,
+                  isMobile,
+                ),
               ],
             ),
           ),
@@ -416,6 +426,7 @@ class ScorecardScreen extends StatelessWidget {
 
   Widget _buildStatsRow(
     Innings innings,
+    dynamic currentOver,
     int currentOverRuns,
     int totalOvers,
     bool isMobile,
@@ -460,7 +471,7 @@ class ScorecardScreen extends StatelessWidget {
         ],
         _buildStatCard(
           'This Over',
-          currentOverRuns.toString(),
+          currentOver != null ? currentOverRuns.toString() : '-',
           AppTheme.primaryBlue,
           Icons.circle,
           isMobile,
