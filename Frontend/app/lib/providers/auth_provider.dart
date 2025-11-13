@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/auth_user.dart';
-import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   AuthUser? _currentUser;
-  final ApiService _apiService = ApiService();
   bool _isInitialized = false;
   String? _errorMessage;
 
@@ -19,7 +17,6 @@ class AuthProvider extends ChangeNotifier {
   Future<void> init() async {
     if (_isInitialized) return;
 
-    await _apiService.init();
     await _loadSavedUser();
     _isInitialized = true;
   }
@@ -73,7 +70,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Sign up new user
+  // Sign up new user (local storage only)
   Future<bool> signUp({
     required String email,
     required String password,
@@ -82,24 +79,27 @@ class AuthProvider extends ChangeNotifier {
     try {
       _errorMessage = null;
 
-      final response = await _apiService.signup(
-        email: email,
-        password: password,
-        name: name,
-      );
+      // Check if user already exists
+      final prefs = await SharedPreferences.getInstance();
+      final existingEmail = prefs.getString('registered_email');
 
-      // Extract user data and token from response
+      if (existingEmail == email) {
+        _errorMessage = 'Email already exists';
+        return false;
+      }
+
+      // Create new user
       final user = AuthUser(
-        id: response['id'],
-        email: response['email'],
-        name: response['name'],
+        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
+        email: email,
+        name: name,
         isGuest: false,
       );
 
-      // Save token
-      if (response['access_token'] != null) {
-        await _apiService.saveToken(response['access_token']);
-      }
+      // Save credentials for login
+      await prefs.setString('registered_email', email);
+      await prefs.setString('registered_password', password);
+      await prefs.setString('registered_name', name);
 
       _currentUser = user;
       await _saveUser(user);
@@ -112,28 +112,29 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Login existing user
+  // Login existing user (local storage only)
   Future<bool> login({required String email, required String password}) async {
     try {
       _errorMessage = null;
 
-      final response = await _apiService.login(
-        email: email,
-        password: password,
-      );
+      // Check credentials
+      final prefs = await SharedPreferences.getInstance();
+      final registeredEmail = prefs.getString('registered_email');
+      final registeredPassword = prefs.getString('registered_password');
+      final registeredName = prefs.getString('registered_name');
 
-      // Extract user data and token from response
+      if (registeredEmail != email || registeredPassword != password) {
+        _errorMessage = 'Invalid email or password';
+        return false;
+      }
+
+      // Create user
       final user = AuthUser(
-        id: response['id'],
-        email: response['email'],
-        name: response['name'],
+        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
+        email: email,
+        name: registeredName ?? 'User',
         isGuest: false,
       );
-
-      // Save token
-      if (response['access_token'] != null) {
-        await _apiService.saveToken(response['access_token']);
-      }
 
       _currentUser = user;
       await _saveUser(user);
@@ -146,46 +147,28 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Continue as guest
+  // Continue as guest (local only)
   Future<void> continueAsGuest() async {
     try {
       _errorMessage = null;
 
-      final response = await _apiService.guestLogin();
-
-      final user = AuthUser(
-        id: response['id'],
-        email: response['email'],
-        name: response['name'] ?? 'Guest User',
-        isGuest: true,
-      );
-
-      // Save token
-      if (response['access_token'] != null) {
-        await _apiService.saveToken(response['access_token']);
-      }
-
-      _currentUser = user;
-      await _saveUser(user);
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      debugPrint('Guest login error: $e');
-      // Fallback to local guest mode if API fails
       _currentUser = AuthUser(
         id: 'guest_${DateTime.now().millisecondsSinceEpoch}',
         email: 'guest@cricket.app',
         name: 'Guest User',
         isGuest: true,
       );
+
       await _saveUser(_currentUser!);
       notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      debugPrint('Guest login error: $e');
     }
   }
 
   // Logout
   Future<void> logout() async {
-    await _apiService.clearToken();
     await _clearSavedUser();
     _currentUser = null;
     _errorMessage = null;
@@ -202,23 +185,12 @@ class AuthProvider extends ChangeNotifier {
     return true;
   }
 
-  // Refresh user data from API
+  // Refresh user data from local storage
   Future<void> refreshUser() async {
     if (!isAuthenticated) return;
 
     try {
-      final response = await _apiService.getCurrentUser();
-
-      final user = AuthUser(
-        id: response['id'],
-        email: response['email'],
-        name: response['name'],
-        isGuest: response['is_guest'] ?? false,
-      );
-
-      _currentUser = user;
-      await _saveUser(user);
-      notifyListeners();
+      await _loadSavedUser();
     } catch (e) {
       debugPrint('Error refreshing user: $e');
     }

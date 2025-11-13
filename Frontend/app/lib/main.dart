@@ -3,9 +3,6 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/match_provider.dart';
 import 'providers/theme_provider.dart';
-import 'providers/tournament_provider.dart';
-import 'providers/player_profile_provider.dart';
-import 'providers/user_profile_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_screen.dart';
@@ -33,9 +30,6 @@ class CricketScoreboardApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => MatchProvider()),
-        ChangeNotifierProvider(create: (_) => TournamentProvider()),
-        ChangeNotifierProvider(create: (_) => PlayerProfileProvider()),
-        ChangeNotifierProvider(create: (_) => UserProfileProvider()),
       ],
       child: Consumer2<ThemeProvider, AuthProvider>(
         builder: (context, themeProvider, authProvider, child) {
