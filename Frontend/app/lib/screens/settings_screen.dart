@@ -6,7 +6,6 @@ import '../providers/tournament_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'user_profile_screen.dart';
-import 'auth_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -295,7 +294,7 @@ class SettingsScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.sports_cricket),
               title: const Text('Cricket Scoreboard'),
-              subtitle: const Text('Version 1.0.0'),
+              subtitle: const Text('Version 1.0'),
             ),
             const Divider(),
             ListTile(
@@ -432,9 +431,6 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               context.read<AuthProvider>().logout();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
-              );
             },
             child: const Text('Login / Sign Up'),
           ),
@@ -458,9 +454,6 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () {
               authProvider.logout();
               Navigator.of(context).pop();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
-              );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
             child: const Text('Logout'),

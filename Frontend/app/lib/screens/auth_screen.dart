@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
-import 'home_screen.dart';
+import 'main_navigation_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -245,7 +245,7 @@ class _AuthScreenState extends State<AuthScreen> {
     if (success) {
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
         );
       }
     } else {
@@ -265,7 +265,7 @@ class _AuthScreenState extends State<AuthScreen> {
   void _continueAsGuest() {
     context.read<AuthProvider>().continueAsGuest();
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
     );
   }
 }

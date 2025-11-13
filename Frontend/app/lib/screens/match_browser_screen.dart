@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'match_post_form_screen.dart';
-import 'auth_screen.dart';
 
 /// Match Browser screen for exploring and posting matches
 class MatchBrowserScreen extends StatelessWidget {
@@ -149,9 +148,6 @@ class MatchBrowserScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               context.read<AuthProvider>().logout();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
-              );
             },
             child: const Text('Login / Sign Up'),
           ),

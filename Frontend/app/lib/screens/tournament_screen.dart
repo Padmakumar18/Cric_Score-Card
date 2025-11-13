@@ -5,7 +5,6 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'tournament_create_screen.dart';
 import 'tournament_dashboard_screen.dart';
-import 'auth_screen.dart';
 
 /// Tournament screen for managing tournaments
 class TournamentScreen extends StatelessWidget {
@@ -190,9 +189,6 @@ class TournamentScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               context.read<AuthProvider>().logout();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
-              );
             },
             child: const Text('Login / Sign Up'),
           ),
