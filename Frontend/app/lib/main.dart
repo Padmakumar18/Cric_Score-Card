@@ -4,6 +4,7 @@ import 'theme/app_theme.dart';
 import 'providers/match_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'constants/app_constants.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_screen.dart';
 
@@ -23,6 +24,18 @@ class CricketScoreboardApp extends StatelessWidget {
 
   const CricketScoreboardApp({super.key, required this.authProvider});
 
+  Widget _getHomeScreen(AuthProvider authProvider) {
+    // If auth is disabled, always show home screen
+    if (!AppConstants.showAuthPage) {
+      return const HomeScreen();
+    }
+
+    // If auth is enabled, check authentication status
+    return authProvider.isAuthenticated
+        ? const HomeScreen()
+        : const AuthScreen();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -38,9 +51,7 @@ class CricketScoreboardApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
-            home: authProvider.isAuthenticated
-                ? const HomeScreen()
-                : const AuthScreen(),
+            home: _getHomeScreen(authProvider),
             debugShowCheckedModeBanner: false,
           );
         },

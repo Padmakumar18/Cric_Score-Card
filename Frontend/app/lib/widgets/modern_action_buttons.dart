@@ -517,21 +517,29 @@ class ModernActionButtons extends StatelessWidget {
   }
 
   void _showRunOutDialog(BuildContext context, MatchProvider provider) {
+    // First, ask for runs
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardBackground,
+        backgroundColor: Theme.of(context).cardTheme.color,
         contentPadding: const EdgeInsets.all(24),
-        title: const Padding(
-          padding: EdgeInsets.only(bottom: 8),
-          child: Text('Run Out', style: TextStyle(color: AppTheme.textPrimary)),
+        title: Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            'Run Out',
+            style: TextStyle(
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'How many runs before run out?',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
             ),
             const SizedBox(height: 24),
             Wrap(
@@ -545,14 +553,9 @@ class ModernActionButtons extends StatelessWidget {
                       height: 60,
                       child: ElevatedButton(
                         onPressed: () {
-                          provider.addBallEvent(
-                            runs: runs,
-                            isWicket: true,
-                            wicketType: 'Run Out',
-                          );
                           Navigator.of(context).pop();
-                          // Show new batsman dialog
-                          PlayerDialogs.showNewBatsmanDialog(context, provider);
+                          // Show which batsman is out dialog
+                          _showWhichBatsmanOutDialog(context, provider, runs);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.wicketColor,
@@ -577,5 +580,99 @@ class ModernActionButtons extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showWhichBatsmanOutDialog(
+    BuildContext context,
+    MatchProvider provider,
+    int runs,
+  ) {
+    final innings = provider.currentMatch?.currentInnings;
+    if (innings == null) return;
+
+    final currentBatsmen = innings.currentBatsmen;
+    if (currentBatsmen.length < 2) return;
+
+    final striker = innings.strikerBatsman;
+    final nonStriker = innings.nonStrikerBatsman;
+
+    if (striker == null || nonStriker == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardTheme.color,
+        title: Text(
+          'Which batsman is out?',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.sports_cricket, color: AppTheme.primaryGreen),
+              title: Text(
+                '${striker.name} (Striker)',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                '${striker.runs} (${striker.ballsFaced})',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+              ),
+              onTap: () {
+                _handleRunOut(context, provider, runs, striker.name, true);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: Icon(Icons.sports_cricket, color: AppTheme.dotBallColor),
+              title: Text(
+                '${nonStriker.name} (Non-Striker)',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+              subtitle: Text(
+                '${nonStriker.runs} (${nonStriker.ballsFaced})',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+              ),
+              onTap: () {
+                _handleRunOut(context, provider, runs, nonStriker.name, false);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleRunOut(
+    BuildContext context,
+    MatchProvider provider,
+    int runs,
+    String dismissedBatsman,
+    bool strikerOut,
+  ) {
+    // Add the run out event
+    provider.addBallEvent(
+      runs: runs,
+      isWicket: true,
+      wicketType: 'Run Out',
+      dismissedBatsman: dismissedBatsman,
+    );
+
+    Navigator.of(context).pop();
+
+    // Show new batsman dialog
+    PlayerDialogs.showNewBatsmanDialog(context, provider);
   }
 }

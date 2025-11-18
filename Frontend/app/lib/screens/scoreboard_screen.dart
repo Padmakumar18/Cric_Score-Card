@@ -98,15 +98,29 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     }
 
     // Check if new batsman is needed (check wickets instead of balls)
-    if (provider.needsNewBatsman && _lastCheckedWickets != currentWickets) {
+    if (provider.needsNewBatsman &&
+        !provider.isAwaitingNewBatsmanInput &&
+        _lastCheckedWickets != currentWickets) {
       _lastCheckedWickets = currentWickets;
       _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
         if (!mounted || !_isDialogShowing) return;
+        // Double-check that we still need a new batsman before showing dialog
+        if (!provider.needsNewBatsman) {
+          setState(() {
+            _isDialogShowing = false;
+          });
+          return;
+        }
         PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
           if (mounted) {
             setState(() {
               _isDialogShowing = false;
+              // Update the wicket count after dialog closes to prevent re-triggering
+              final match = provider.currentMatch;
+              if (match != null) {
+                _lastCheckedWickets = match.currentInnings?.wickets ?? -1;
+              }
             });
           }
         });

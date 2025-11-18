@@ -10,6 +10,8 @@ class PlayerDialogs {
     final controller = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
+    provider.setAwaitingNewBatsmanInput(true);
+
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -64,7 +66,9 @@ class PlayerDialogs {
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      provider.setAwaitingNewBatsmanInput(false);
+    });
   }
 
   static Future<void> showNewBowlerDialog(

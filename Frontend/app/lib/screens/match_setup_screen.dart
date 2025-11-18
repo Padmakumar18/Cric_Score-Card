@@ -21,9 +21,15 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   final _team2Controller = TextEditingController(
     text: AppConstants.defaultTeam2,
   );
+  final _oversController = TextEditingController();
+  final _playersController = TextEditingController();
 
   int _oversPerInnings = AppConstants.defaultOversPerInnings;
   int _totalPlayers = 11;
+
+  // Track if using custom values
+  bool _isCustomOvers = false;
+  bool _isCustomPlayers = false;
   String _tossWinner = AppConstants.defaultTeam1;
   String _tossDecision = AppConstants.tossDecisionBat;
 
@@ -31,13 +37,15 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   void dispose() {
     _team1Controller.dispose();
     _team2Controller.dispose();
+    _oversController.dispose();
+    _playersController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Match Setup'), centerTitle: true),
+      // appBar: AppBar(title: const Text('Match Setup'), centerTitle: true),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -52,12 +60,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
               const SizedBox(height: 32),
               _buildSectionTitle('Match Format'),
               const SizedBox(height: 16),
-              _buildMatchFormat(),
-
-              const SizedBox(height: 32),
-              _buildSectionTitle('Team Size'),
-              const SizedBox(height: 16),
-              _buildTeamSize(),
+              _buildMatchFormatCompact(),
 
               const SizedBox(height: 32),
               _buildSectionTitle('Toss Details'),
@@ -120,128 +123,165 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
     );
   }
 
-  Widget _buildMatchFormat() {
-    final oversController = TextEditingController(
-      text: _oversPerInnings.toString(),
-    );
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Overs per Innings',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-
-            // Predefined Overs Options
-            Wrap(
-              spacing: 8,
-              children: [5, 10, 15, 20, 25, 50].map((overs) {
-                return ChoiceChip(
-                  label: Text('$overs overs'),
-                  selected: _oversPerInnings == overs,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() {
-                        _oversPerInnings = overs;
-                        oversController.text = overs.toString();
-                      });
-                    }
-                  },
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: oversController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Enter custom number of overs',
-                border: const OutlineInputBorder(),
-                suffixIcon: const Icon(Icons.sports_cricket),
+  Widget _buildMatchFormatCompact() {
+    return Row(
+      children: [
+        // Overs per Innings Dropdown
+        Expanded(
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.sports_cricket, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Overs',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: _isCustomOvers ? null : _oversPerInnings,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    hint: _isCustomOvers
+                        ? Text('$_oversPerInnings overs (Custom)')
+                        : null,
+                    items: [5, 10, 15, 20, 25, 50].map((overs) {
+                      return DropdownMenuItem(
+                        value: overs,
+                        child: Text('$overs overs'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _oversPerInnings = value;
+                          _isCustomOvers = false;
+                          _oversController.clear();
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _oversController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Custom',
+                      hintText: 'Enter overs',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      final enteredValue = int.tryParse(value);
+                      if (enteredValue != null && enteredValue > 0) {
+                        setState(() {
+                          _oversPerInnings = enteredValue;
+                          _isCustomOvers = true;
+                        });
+                      }
+                    },
+                  ),
+                ],
               ),
-              onChanged: (value) {
-                final enteredValue = int.tryParse(value);
-                if (enteredValue != null && enteredValue > 0) {
-                  setState(() {
-                    _oversPerInnings = enteredValue;
-                  });
-                }
-              },
             ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTeamSize() {
-    final playersController = TextEditingController(
-      text: _totalPlayers.toString(),
-    );
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Total Players per Team',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-
-            // Predefined Players Options
-            Wrap(
-              spacing: 8,
-              children: [5, 7, 9, 11].map((players) {
-                return ChoiceChip(
-                  label: Text('$players players'),
-                  selected: _totalPlayers == players,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() {
-                        _totalPlayers = players;
-                        playersController.text = players.toString();
-                      });
-                    }
-                  },
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: playersController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Enter custom number of players',
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.people),
-                helperText: 'Innings ends when (players - 1) wickets fall',
+        const SizedBox(width: 16),
+        // Total Players Dropdown
+        Expanded(
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.people, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Players',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: _isCustomPlayers ? null : _totalPlayers,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    hint: _isCustomPlayers
+                        ? Text('$_totalPlayers players (Custom)')
+                        : null,
+                    items: [5, 7, 9, 11].map((players) {
+                      return DropdownMenuItem(
+                        value: players,
+                        child: Text('$players players'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _totalPlayers = value;
+                          _isCustomPlayers = false;
+                          _playersController.clear();
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _playersController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Custom',
+                      hintText: 'Enter players',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      final enteredValue = int.tryParse(value);
+                      if (enteredValue != null && enteredValue > 1) {
+                        setState(() {
+                          _totalPlayers = enteredValue;
+                          _isCustomPlayers = true;
+                        });
+                      }
+                    },
+                  ),
+                ],
               ),
-              onChanged: (value) {
-                final enteredValue = int.tryParse(value);
-                if (enteredValue != null &&
-                    enteredValue > 1 &&
-                    enteredValue <= 11) {
-                  setState(() {
-                    _totalPlayers = enteredValue;
-                  });
-                }
-              },
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 

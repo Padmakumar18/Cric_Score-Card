@@ -1,5 +1,8 @@
 /// Application constants and configuration
 class AppConstants {
+  // App Configuration
+  static const bool showAuthPage = false; // Set to false to skip authentication
+
   // API Configuration
   static const String apiBaseUrl = 'http://localhost:8000';
 

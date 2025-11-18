@@ -12,15 +12,24 @@ class MatchProvider extends ChangeNotifier {
   final List<BallEvent> _ballHistory = [];
   final List<Match> _matchStateHistory = [];
   String? _lastWicketInfo;
+  bool _awaitingNewBatsmanInput = false;
 
   Match? get currentMatch => _currentMatch;
   List<BallEvent> get ballHistory => _ballHistory;
   bool get canUndo => _matchStateHistory.isNotEmpty;
   String? get lastWicketInfo => _lastWicketInfo;
+  bool get isAwaitingNewBatsmanInput => _awaitingNewBatsmanInput;
 
   /// Clear last wicket info
   void clearLastWicketInfo() {
     _lastWicketInfo = null;
+    notifyListeners();
+  }
+
+  /// Track when a new batsman dialog is already open
+  void setAwaitingNewBatsmanInput(bool value) {
+    if (_awaitingNewBatsmanInput == value) return;
+    _awaitingNewBatsmanInput = value;
     notifyListeners();
   }
 
@@ -479,9 +488,12 @@ class MatchProvider extends ChangeNotifier {
         _currentMatch = _currentMatch!.copyWith(secondInnings: updatedInnings);
       }
 
+      _awaitingNewBatsmanInput = false;
       notifyListeners();
     } catch (e) {
       debugPrint('MatchProvider: Error adding new batsman: $e');
+      _awaitingNewBatsmanInput = false;
+      notifyListeners();
     }
   }
 
