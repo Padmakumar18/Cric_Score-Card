@@ -105,13 +105,19 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       _isDialogShowing = true;
       Future.delayed(const Duration(milliseconds: 500), () {
         if (!mounted || !_isDialogShowing) return;
-        // Double-check that we still need a new batsman before showing dialog
-        if (!provider.needsNewBatsman) {
+
+        // Double-check match status and if we still need a new batsman
+        final currentMatch = provider.currentMatch;
+        if (currentMatch == null ||
+            currentMatch.status == AppConstants.statusCompleted ||
+            currentMatch.currentInnings?.isComplete == true ||
+            !provider.needsNewBatsman) {
           setState(() {
             _isDialogShowing = false;
           });
           return;
         }
+
         PlayerDialogs.showNewBatsmanDialog(context, provider).then((_) {
           if (mounted) {
             setState(() {
@@ -133,6 +139,13 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          tooltip: 'Go Back',
+        ),
         title: Row(
           children: [
             const Icon(Icons.sports_cricket, size: 24),
@@ -516,7 +529,9 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                 onPressed: () {
                   context.read<MatchProvider>().resetMatch();
                   Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Go back to home
+                  Navigator.of(
+                    context,
+                  ).popUntil((route) => route.isFirst); // Go back to home
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryBlue,
@@ -569,8 +584,10 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
             ElevatedButton(
               onPressed: () {
                 context.read<MatchProvider>().resetMatch();
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(
+                  context,
+                ).popUntil((route) => route.isFirst); // Go back to home
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.errorRed,

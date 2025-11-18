@@ -16,6 +16,13 @@ class ScorecardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.surfaceDark,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          tooltip: 'Go Back',
+        ),
         title: Row(
           children: const [
             Icon(Icons.list_alt, size: 22),

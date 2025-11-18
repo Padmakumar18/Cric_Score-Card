@@ -34,29 +34,79 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Player Setup'), centerTitle: true),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle('Opening Batsmen (${widget.battingTeam})'),
-              const SizedBox(height: 16),
-              _buildBatsmanInputs(),
-              const SizedBox(height: 32),
-              _buildSectionTitle('Opening Bowler (${widget.bowlingTeam})'),
-              const SizedBox(height: 16),
-              _buildBowlerInput(),
-              const SizedBox(height: 48),
-              _buildStartButton(),
-            ],
+    return WillPopScope(
+      onWillPop: () async {
+        return await _showBackConfirmation(context);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              final shouldPop = await _showBackConfirmation(context);
+              if (shouldPop && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+            tooltip: 'Go Back',
+          ),
+          title: const Text('Player Setup'),
+          centerTitle: true,
+        ),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle('Opening Batsmen (${widget.battingTeam})'),
+                const SizedBox(height: 16),
+                _buildBatsmanInputs(),
+                const SizedBox(height: 32),
+                _buildSectionTitle('Opening Bowler (${widget.bowlingTeam})'),
+                const SizedBox(height: 16),
+                _buildBowlerInput(),
+                const SizedBox(height: 48),
+                _buildStartButton(),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Future<bool> _showBackConfirmation(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardBackground,
+        title: const Text(
+          'Cancel Match Setup?',
+          style: TextStyle(color: AppTheme.textPrimary),
+        ),
+        content: const Text(
+          'Going back will cancel the match setup. Do you want to continue?',
+          style: TextStyle(color: AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Stay'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<MatchProvider>().resetMatch();
+              Navigator.of(context).pop(true);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
+            child: const Text('Go Back'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Widget _buildSectionTitle(String title) {
@@ -154,7 +204,7 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
     // Set the bowler as current bowler
     matchProvider.changeBowler(bowler);
 
-    // Navigate to scoreboard
+    // Navigate to scoreboard (replace to skip player setup when going back)
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const ScoreboardScreen()),
     );

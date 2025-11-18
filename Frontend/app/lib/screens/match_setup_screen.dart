@@ -414,7 +414,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
     );
 
     // Navigate to player setup screen
-    Navigator.of(context).pushReplacement(
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => PlayerSetupScreen(
           battingTeam: matchProvider.currentMatch!.currentBattingTeam,
