@@ -126,9 +126,17 @@ class Match {
 
     final bowlers = bowlingPlayers.map((name) => Bowler(name: name)).toList();
 
+    // Determine batting and bowling teams for first innings
+    final battingTeam = tossDecision == 'bat'
+        ? tossWinner
+        : getOtherTeam(tossWinner);
+    final bowlingTeam = tossDecision == 'bat'
+        ? getOtherTeam(tossWinner)
+        : tossWinner;
+
     final innings = Innings(
-      battingTeam: currentBattingTeam,
-      bowlingTeam: currentBowlingTeam,
+      battingTeam: battingTeam,
+      bowlingTeam: bowlingTeam,
       batsmen: batsmen,
       bowlers: bowlers,
     );
@@ -156,9 +164,17 @@ class Match {
 
     final bowlers = bowlingPlayers.map((name) => Bowler(name: name)).toList();
 
+    // Determine batting and bowling teams for second innings (opposite of first)
+    final battingTeam = tossDecision == 'bat'
+        ? getOtherTeam(tossWinner)
+        : tossWinner;
+    final bowlingTeam = tossDecision == 'bat'
+        ? tossWinner
+        : getOtherTeam(tossWinner);
+
     final innings = Innings(
-      battingTeam: currentBattingTeam,
-      bowlingTeam: currentBowlingTeam,
+      battingTeam: battingTeam,
+      bowlingTeam: bowlingTeam,
       batsmen: batsmen,
       bowlers: bowlers,
       target: target,

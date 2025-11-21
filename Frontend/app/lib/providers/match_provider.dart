@@ -301,6 +301,7 @@ class MatchProvider extends ChangeNotifier {
       shouldComplete = true;
     } else if (currentInnings.target > 0 &&
         currentInnings.totalRuns >= currentInnings.target) {
+      // Chasing team has reached or exceeded the target
       shouldComplete = true;
       result =
           '${currentInnings.battingTeam} won by ${maxWickets - currentInnings.wickets} wickets';
@@ -313,16 +314,23 @@ class MatchProvider extends ChangeNotifier {
           isFirstInningsComplete: true,
         );
       } else if (_currentMatch!.status == AppConstants.statusSecondInnings) {
+        // Calculate result if not already set (e.g., when target was reached)
         if (result == null) {
           final firstInningsRuns = _currentMatch!.firstInnings!.totalRuns;
           final secondInningsRuns = currentInnings.totalRuns;
+          final firstBattingTeam = _currentMatch!.firstInnings!.battingTeam;
+          final secondBattingTeam = currentInnings.battingTeam;
+
           if (secondInningsRuns > firstInningsRuns) {
-            result =
-                '${currentInnings.battingTeam} won by ${maxWickets - currentInnings.wickets} wickets';
+            // Chasing team (second batting team) won by wickets
+            final wicketsRemaining = maxWickets - currentInnings.wickets;
+            result = '$secondBattingTeam won by $wicketsRemaining wickets';
           } else if (firstInningsRuns > secondInningsRuns) {
-            result =
-                '${_currentMatch!.firstInnings!.battingTeam} won by ${firstInningsRuns - secondInningsRuns} runs';
+            // First batting team won by runs
+            final runDifference = firstInningsRuns - secondInningsRuns;
+            result = '$firstBattingTeam won by $runDifference runs';
           } else {
+            // Scores are equal
             result = 'Match tied';
           }
         }
