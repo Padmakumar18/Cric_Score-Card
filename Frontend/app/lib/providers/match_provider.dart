@@ -183,7 +183,11 @@ class MatchProvider extends ChangeNotifier {
     // Update bowler stats
     final updatedBowlers = currentInnings.bowlers.map((bowler) {
       if (bowler.name == currentBowler.name) {
-        return bowler.addBall(ball.totalRuns, ball.isWicket);
+        return bowler.addBall(
+          ball.totalRuns,
+          ball.isWicket,
+          ball.countsTowardsOver,
+        );
       }
       return bowler;
     }).toList();

@@ -67,9 +67,10 @@ class Bowler {
   }
 
   /// Add a ball to bowler's stats
-  Bowler addBall(int runs, bool isWicket) {
+  /// Only counts legal deliveries (not wides or no-balls)
+  Bowler addBall(int runs, bool isWicket, bool countsTowardsOver) {
     return copyWith(
-      ballsBowled: ballsBowled + 1,
+      ballsBowled: countsTowardsOver ? ballsBowled + 1 : ballsBowled,
       runsConceded: runsConceded + runs,
       wickets: isWicket ? wickets + 1 : wickets,
     );
