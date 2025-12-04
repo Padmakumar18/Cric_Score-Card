@@ -159,7 +159,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
                     hint: _isCustomOvers
                         ? Text('$_oversPerInnings overs (Custom)')
                         : null,
-                    items: [5, 10, 15, 20, 25, 50].map((overs) {
+                    items: [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20].map((overs) {
                       return DropdownMenuItem(
                         value: overs,
                         child: Text('$overs overs'),
@@ -237,7 +237,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
                     hint: _isCustomPlayers
                         ? Text('$_totalPlayers players (Custom)')
                         : null,
-                    items: [5, 7, 9, 11].map((players) {
+                    items: [5, 6, 7, 8, 9, 11].map((players) {
                       return DropdownMenuItem(
                         value: players,
                         child: Text('$players players'),
